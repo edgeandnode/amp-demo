@@ -1,0 +1,70 @@
+name: amp-demo
+services:
+  postgres:
+    image: postgres:16-alpine
+    command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
+    environment:
+      POSTGRES_DB_LIST: amp
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - 5432:5432
+      - 6435:5432
+    volumes:
+      - ./infra/postgres/postgres.conf:/etc/postgresql/postgresql.conf:ro
+      - ./infra/postgres/init.sh:/docker-entrypoint-initdb.d/init.sh:ro
+      - ./infra/postgres/data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # DB explorer right in your web browser at
+  # Amp: http://localhost:7402/?pgsql=postgres&username=postgres&db=amp&ns=public
+  # Battleship: http://localhost:7402/?pgsql=postgres&username=postgres&db=battleship&ns=public
+  # Password: postgres
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 7402:8080
+
+  anvil:
+    image: ghcr.io/foundry-rs/foundry
+    entrypoint: ["anvil", "--host", "0.0.0.0"]
+    ports:
+      - 8545:8545
+
+  # Forwards ConnectRPC Arrow Flight requests to the Amp Arrow Flight gRPC server. This
+  # is useful if you want to e.g. query Amp directly from the browser.
+  proxy:
+    image: ghcr.io/edgeandnode/arrow-flight-proxy:latest
+    depends_on:
+      - amp
+    restart: unless-stopped
+    ports:
+      - 8080:8080 # HTTP
+    environment:
+      PROXY_UPSTREAM: amp:1602
+      PROXY_UPSTREAM_INSECURE: true
+      PROXY_FORWARD_HEADERS: "amp-*,authorization"
+
+  # Amp is a data engineering layer for Ethereum.
+  # https://github.com/edgeandnode/amp
+  amp:
+    image: ghcr.io/edgeandnode/amp:latest
+    command: ["--config", "/var/lib/amp/config.toml", "dev"]
+    depends_on:
+      - postgres
+    volumes:
+      - ./infra/amp/config.toml:/var/lib/amp/config.toml
+      - ./infra/amp/providers:/var/lib/amp/providers
+      - ./infra/amp/datasets:/var/lib/amp/datasets
+      - ./infra/amp/data:/var/lib/amp/data
+    restart: unless-stopped
+    ports:
+      - 1610:1610 # Admin API
+      - 1603:1603 # JSON Lines
+      - 1602:1602 # Arrow Flight

@@ -1,0 +1,25 @@
+.*
+!.vscode
+!.gitignore
+!.gitmodules
+!.envrc
+!.prettierrc
+!.prettierignore
+!.github
+
+node_modules/
+build/
+out/
+dist/
+broadcast/
+cache/
+
+*.tsbuildinfo
+
+# Postgres data volume
+/infra/postgres/data/
+/infra/amp/data
+/infra/amp/datasets
+/infra/amp/providers
+/infra/amp/anvil.json
+!/infra/amp/providers/anvil.toml
