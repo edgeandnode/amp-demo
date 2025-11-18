@@ -19,7 +19,7 @@ This demonstrates event tables plus a simple derived table from the anvil depend
 - \`incremented\`: Increment events from the contract
 
 ## Derived Tables (custom SQL)
-- \`block_summary\`: Simple aggregation showing block count
+- \`simple_filter\`: Simple filter showing blocks with gas usage from anvil dependency
 `,
     keywords: ["Anvil", "Derived", "Demo"],
     dependencies: {
@@ -28,7 +28,7 @@ This demonstrates event tables plus a simple derived table from the anvil depend
     tables: {
       ...baseTables,
       // Custom table: Blocks with gas usage from anvil dependency
-      block_summary: {
+      simple_filter: {
         sql: `
           SELECT
             block_num,
