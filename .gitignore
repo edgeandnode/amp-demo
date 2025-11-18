@@ -20,6 +20,6 @@ cache/
 /infra/postgres/data/
 /infra/amp/data
 /infra/amp/datasets
-/infra/amp/providers
+/infra/amp/providers/*.toml
 /infra/amp/anvil.json
 !/infra/amp/providers/anvil.toml

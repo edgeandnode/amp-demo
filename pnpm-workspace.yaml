@@ -1,0 +1,8 @@
+onlyBuiltDependencies:
+  - '@parcel/watcher'
+  - bufferutil
+  - core-js-pure
+  - esbuild
+  - keccak
+  - msgpackr-extract
+  - utf-8-validate

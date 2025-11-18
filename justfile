@@ -8,6 +8,11 @@ default:
 # Install dependencies
 install:
     pnpm install
+    forge build
+
+# Install amp
+ampup:
+    curl --proto '=https' --tlsv1.2 -sSf https://ampup.sh/install | sh
 
 # Start service dependencies
 up *args:
@@ -50,6 +55,9 @@ dev-app:
 [private]
 dev-amp:
     ampctl manifest generate --network anvil --kind evm-rpc --out ./infra/amp/anvil.json
-    ampctl dataset register _/anvil ./infra/amp/anvil.json
+    ampctl dataset register _/anvil -t 0.0.1 ./infra/amp/anvil.json
     ampctl dataset deploy _/anvil@dev
     pnpm amp dev
+
+studio:
+    pnpm run amp studio --open
