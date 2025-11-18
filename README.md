@@ -15,7 +15,7 @@ Template for building an Amp Dataset and ingesting the Dataset data in an applic
   - [TypeScript/JavaScript API](#typescriptjavascript-api)
   - [CLI Queries](#cli-queries)
 - [Advanced Features](#advanced-features)
-  - [User-Defined Functions (UDFs)](#user-defined-functions-udfs)
+  - [Built-in SQL Functions](#built-in-sql-functions)
 - [Development Workflow](#development-workflow)
 - [Troubleshooting](#troubleshooting)
 - [Command Reference](#command-reference)
@@ -106,7 +106,6 @@ Derived tables use an **incremental/streaming model** - they process new blocks 
 - `WHERE` - Filter rows
 - `JOIN` - Join with dependency tables
 - `UNION ALL` - Combine queries
-- Window functions with `PARTITION BY block_num`
 - Projections and column transformations
 
 **❌ Unsupported Operations:**
@@ -114,15 +113,16 @@ Derived tables use an **incremental/streaming model** - they process new blocks 
 - `ORDER BY` (global) - Cannot sort unbounded streams
 - `DISTINCT` in subqueries - Aggregate operation
 - `GROUP BY` with aggregates in subqueries
-- Unbounded window functions (e.g., `ROW_NUMBER()`)
 - Non-deterministic functions (`RANDOM()`, `NOW()`)
 - Self-referencing (cannot query tables in same dataset)
+- Window functions
+
 
 **Example - Valid Derived Table:**
 ```typescript
 // ✅ Queries dependency (anvil.blocks)
 tables: {
-  block_summary: {
+  simple_filter: {
     sql: `
       SELECT block_num, hash, timestamp, gas_used
       FROM anvil.blocks
@@ -131,6 +131,8 @@ tables: {
   },
 }
 ```
+
+change to group by
 
 **Example - Invalid:**
 ```typescript
@@ -142,9 +144,10 @@ tables: {
 }
 ```
 
-**Best Practices for Self-Referencing:**
-1. **Query-time joins** - Combine tables in your application queries
-2. **UDFs** - Write custom TypeScript functions (see [UDFs](#user-defined-functions-udfs))
+workaround for group bys
+
+**Workaround for Group By's:**
+- **Query-time joins** - Combine tables in your application queries using `UNION ALL` or `JOIN`
 
 ### Dataset Tags (@dev vs @latest)
 
@@ -178,69 +181,59 @@ pnpm amp query 'SELECT * FROM "_/counter@dev".incremented LIMIT 10'
 # Query decremented events
 pnpm amp query 'SELECT * FROM "_/counter@dev".decremented LIMIT 10'
 
-# Join with anvil dependency
-pnpm amp query 'SELECT i.count, b.timestamp FROM "_/counter@dev".incremented i JOIN "_/anvil@0.0.1".blocks b ON i.block_num = b.block_num'
-
-# Check if data exists
-pnpm amp query 'SELECT COUNT(*) FROM "_/counter@dev".incremented'
 ```
 
-**Important:**
-- Always use `@dev` for development datasets
-- Tables are empty until you interact with the frontend to generate transactions
-- Full SQL capabilities available (unlike derived tables in `amp.config.ts`)
 
 ## Advanced Features
 
-### User-Defined Functions (UDFs)
+### Built-in SQL Functions
 
-UDFs allow custom TypeScript/JavaScript functions to process and transform data beyond SQL limitations. Use cases:
+Amp provides specialized SQL functions for working with blockchain data:
 
-- Combining event tables from the same dataset
-- Complex transformations not expressible in streaming SQL
-- Custom business logic requiring procedural code
-- Data enrichment via external APIs
+#### EVM Functions
 
-#### Define UDF in amp.config.ts
+bring in docs from amp private for reference
 
-```typescript
-import { defineDataset, eventTables } from "@edgeandnode/amp"
-
-export default defineDataset(({ functionSource }) => ({
-  name: "counter",
-  network: "anvil",
-  dependencies: {
-    anvil: "_/anvil@0.0.1",
-  },
-  tables: eventTables(abi),
-  functions: {
-    combineEvents: {
-      source: functionSource("./functions/combineEvents.ts"),
-      inputTypes: ["incremented", "decremented"],
-      outputType: "combined_events",
-    },
-  },
-}))
+**`evm_decode_log`** - Decode EVM event logs:
+```sql
+SELECT evm_decode_log(topic1, topic2, topic3, data, 'Transfer(address from, address to, uint256 value)') AS event
+FROM anvil.logs
 ```
 
-#### Implement UDF
-
-Create `functions/combineEvents.ts`:
-
-```typescript
-// Process rows from incremented and decremented tables
-export default function combineEvents(incremented: any[], decremented: any[]) {
-  const combined = [
-    ...incremented.map(row => ({ ...row, event_type: 'increment' })),
-    ...decremented.map(row => ({ ...row, event_type: 'decrement' })),
-  ]
-
-  // Sort by block number and timestamp
-  return combined.sort((a, b) =>
-    a.block_num - b.block_num || a.block_timestamp - b.block_timestamp
-  )
-}
+**`evm_topic`** - Get topic hash from event signature:
+```sql
+SELECT * FROM anvil.logs
+WHERE topic0 = evm_topic('Transfer(address,address,uint256)')
 ```
+
+**`evm_decode_params`** - Decode function parameters:
+```sql
+SELECT evm_decode_params(input, 'function approve(address _spender, uint256 _value)') AS params
+FROM anvil.transactions
+```
+
+**`evm_encode_params`** - Encode function parameters:
+```sql
+SELECT evm_encode_params(address_col, amount_col, 'function transfer(address _to, uint256 _value)') AS encoded
+FROM my_table
+```
+
+**`evm_encode_type` / `evm_decode_type`** - Encode/decode Solidity types:
+```sql
+SELECT evm_encode_type(CAST(635 AS DECIMAL(39, 0)), 'uint256') AS encoded
+SELECT evm_decode_type(data, 'uint256') AS decoded
+```
+
+#### Blockchain Functions
+
+**`${dataset}.eth_call`** - Execute read-only contract calls:
+```sql
+SELECT anvil.eth_call(from_addr, to_addr, input_data, CAST(block_num AS STRING))
+FROM anvil.transactions
+```
+
+
+These functions are already available in your SQL queries - no additional setup required.
 
 ## Development Workflow
 
@@ -289,7 +282,9 @@ cp amp.config.extended-example.ts amp.config.ts
 just down && just up
 ```
 
-This adds a `block_summary` table querying the `anvil` dependency. Modify the SQL to experiment with derived tables.
+new naming
+
+This adds a `simple_filter` table querying the `anvil` dependency. Modify the SQL to experiment with derived tables.
 
 ## Troubleshooting
 
@@ -344,9 +339,6 @@ just up
 ```
 
 ### Build Errors
-
-**"table 'incremented' must be qualified":**
-- You're trying to self-reference. Use dependency tables instead or UDFs.
 
 **"non-incremental operation: Limit":**
 - Remove `LIMIT`, `ORDER BY`, `DISTINCT` from derived table SQL.
