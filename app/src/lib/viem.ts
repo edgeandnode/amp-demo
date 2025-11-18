@@ -1,14 +1,18 @@
-import { createPublicClient, getContract, webSocket } from "viem"
-import { anvil } from "viem/chains"
-import { abi } from "./abi"
+import { createPublicClient, getContract, webSocket } from "viem";
+import { anvil } from "viem/chains";
+import BroadcastData from "../../../contracts/broadcast/DeployCounter.s.sol/31337/run-latest.json" with {type:"json"}
+import { abi } from "./abi.ts";
+import { parseDeployedContractAddress } from "./parseContractAddress.ts";
 
 export const client = createPublicClient({
   chain: anvil,
   transport: webSocket("/rpc"),
-})
+});
+
+export const address = parseDeployedContractAddress(BroadcastData)
 
 export const counter = getContract({
-  address: "0x6F6B8249aC2D544cb3d5CB21fFfD582F8c7e9FE5",
+  address,
   abi,
   client,
-})
+});

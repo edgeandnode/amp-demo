@@ -5,6 +5,7 @@ import { privateKeyToAccount } from "viem/accounts";
 import { useWriteContract } from "wagmi";
 import { abi } from "../lib/abi.ts";
 import { wagmiConfig } from "../lib/config.ts";
+import { address as contractAddress } from "../lib/viem.ts";
 import { DecrementTable } from "./DecrementTable.tsx";
 import { IncrementTable } from "./IncremenetTable.tsx";
 import { LogsTable } from "./LogsTable.tsx";
@@ -72,7 +73,7 @@ function IncrementCTA() {
         writeContract(
           {
             abi,
-            address: "0x6F6B8249aC2D544cb3d5CB21fFfD582F8c7e9FE5",
+            address: contractAddress,
             functionName: "increment",
             account,
           },
@@ -109,7 +110,7 @@ function DecrementCTA() {
         writeContract(
           {
             abi,
-            address: "0x6F6B8249aC2D544cb3d5CB21fFfD582F8c7e9FE5",
+            address: contractAddress,
             functionName: "decrement",
             account,
           },
