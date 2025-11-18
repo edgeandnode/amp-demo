@@ -2,6 +2,12 @@
 
 Template for building an Amp Dataset and ingesting the Dataset data in an application. Demos simple Amp config usage and consumption.
 
+## Supported Chains
+
+Currently, supported chains are Ethereum, Arbitrum, and Base. 
+
+Foundry is supported for local development. 
+
 ## Table of Contents
 
 - [Prerequisites](#prerequisites)
