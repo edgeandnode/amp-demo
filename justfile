@@ -57,6 +57,9 @@ dev-amp:
     ampctl manifest generate --network anvil --kind evm-rpc --out ./infra/amp/anvil.json
     ampctl dataset register _/anvil -t 0.0.1 ./infra/amp/anvil.json
     ampctl dataset deploy _/anvil@dev
+    pnpm amp build -o /tmp/amp-counter-manifest.json
+    ampctl dataset register _/counter /tmp/amp-counter-manifest.json
+    ampctl dataset deploy _/counter@dev
     pnpm amp dev
 
 studio:

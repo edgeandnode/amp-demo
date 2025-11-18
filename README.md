@@ -118,8 +118,54 @@ Quick start:
 - Try pasting the contents of `amp.config.extended-example.ts` into `amp.config.ts` to see a working derived table (creates a new `block_summary` table from the anvil dependency). Then tweak the SQL and rerun Amp to iterate quickly.
 - **After updating `amp.config.ts`**: Run `just down` then `just up` to re-register the dataset with your new tables. The dev server (`just dev`) will pick up the changes automatically.
 - When experimenting, clearing `infra/amp/data` and `infra/amp/datasets` can give you a clean slate for ingestion.
-- When querying via CLI, qualify tables with the dataset: the default namespace is `_` and the dataset name here is `counter`, so use `"_/counter".incremented`, `"_/counter".decremented`, or `"_/counter".block_summary` (the slash requires quoting). Example:
-  `pnpm amp query "SELECT block_num, timestamp, count AS value, 'increment' AS direction FROM \"_/counter\".incremented UNION ALL SELECT block_num, timestamp, count AS value, 'decrement' AS direction FROM \"_/counter\".decremented"`.
+- When querying via CLI, qualify tables with the dataset: the default namespace is `_` and the dataset name here is `counter`. **Important: Use `@dev` for development datasets**, not `@latest`. Example:
+  ```bash
+  pnpm amp query "SELECT block_num, timestamp, count FROM \"_/counter@dev\".incremented LIMIT 10"
+  ```
+
+**Note on Querying:**
+- The dataset must be **deployed and running** before you can query it
+- **Development datasets use `@dev` tag**: Query with `"_/counter@dev".tablename`, not `"_/counter@latest".tablename`
+- If you get `Unknown dataset reference '_/counter@latest'`, use `@dev` instead of `@latest`
+- Unlike derived tables in `amp.config.ts`, CLI queries have **full SQL capabilities** (can use `ORDER BY`, `LIMIT`, `JOIN`, etc.)
+- Query time operations don't have streaming limitations since they're executed on-demand, not incrementally
+- Tables will be empty until you interact with the frontend (increment/decrement the counter) to generate transactions
+
+**Troubleshooting "Unknown dataset reference":**
+
+If your queries fail with `Unknown dataset reference '_/counter@latest'`:
+
+1. **Use `@dev` instead of `@latest` for development datasets:**
+   ```bash
+   # ❌ Wrong - uses @latest (only for published versions)
+   pnpm amp query 'SELECT * FROM "_/counter".incremented LIMIT 10'
+
+   # ✅ Correct - uses @dev for development
+   pnpm amp query 'SELECT * FROM "_/counter@dev".incremented LIMIT 10'
+   ```
+
+2. **Check if counter dataset is deployed:**
+   ```bash
+   # Note: @dev datasets won't show in /datasets endpoint, but you can still query them
+   pnpm amp query 'SELECT COUNT(*) FROM "_/counter@dev".incremented'
+   ```
+
+3. **If query still fails, manually deploy:**
+   ```bash
+   pnpm ampctl dataset deploy _/counter@dev
+   ```
+
+4. **Verify data is being extracted:**
+   - Interact with frontend (increment/decrement) to generate transactions
+   - Check logs: `docker compose -f infra/docker-compose.yaml logs amp | grep counter`
+   - Look for data directory: `ls -la infra/amp/data/counter/`
+
+5. **Common issues:**
+   - Using `@latest` instead of `@dev` (most common!)
+   - Config has streaming violations (see "Streaming Model Limitations" below)
+   - Dataset failed to deploy due to SQL errors
+   - No data yet - need to interact with frontend to generate transactions
+   - Services need restart: `just down && just up`
 
 ### Streaming Model Limitations
 
@@ -211,6 +257,97 @@ export default function combineEvents(incremented: any[], decremented: any[]) {
   )
 }
 ```
+
+### Querying from TypeScript/JavaScript
+
+The frontend uses the `@edgeandnode/amp` TypeScript library to query datasets. This provides a type-safe, streaming-friendly API built on top of Apache Arrow Flight.
+
+#### Installation
+
+```bash
+npm install @edgeandnode/amp @connectrpc/connect-web effect apache-arrow
+```
+
+#### Setup
+
+Create a runtime with Arrow Flight transport:
+
+```typescript
+// lib/runtime.ts
+import { createConnectTransport } from "@connectrpc/connect-web"
+import { ArrowFlight } from "@edgeandnode/amp"
+import { ManagedRuntime } from "effect"
+
+const transport = createConnectTransport({ baseUrl: "/amp" })
+const layer = ArrowFlight.layer(transport)
+
+export const runtime = ManagedRuntime.make(layer)
+```
+
+#### Usage Example
+
+Query your dataset using SQL with full type safety:
+
+```typescript
+import { ArrowFlight } from "@edgeandnode/amp"
+import { useQuery } from "@tanstack/react-query"
+import { Table } from "apache-arrow"
+import { Chunk, Effect, Schema, Stream } from "effect"
+import { runtime } from "./lib/runtime"
+
+// Define your schema
+const IncrementSchema = Schema.Struct({
+  block_num: Schema.BigInt,
+  timestamp: Schema.NonNegativeInt,
+  count: Schema.String,
+})
+type IncrementSchema = typeof IncrementSchema.Type
+
+// Create query effect
+const IncrementQueryLive = Effect.gen(function* () {
+  const arrow = yield* ArrowFlight.ArrowFlight
+
+  // Use @dev for development datasets
+  const query = `SELECT block_num, timestamp, count FROM "_/counter@dev".incremented ORDER BY block_num DESC`
+  const queryTemplate: TemplateStringsArray = Object.assign([query], { raw: [query] })
+
+  return yield* arrow.query(queryTemplate).pipe(Stream.runCollect)
+})
+
+// Use in React component with React Query
+export function IncrementTable() {
+  const { data } = useQuery({
+    queryKey: ["Amp", "Demo", { table: "increments" }],
+    async queryFn() {
+      const batch = Chunk.toArray(await runtime.runPromise(IncrementQueryLive))
+      const table = new Table(batch)
+      return [...table].map((row) => IncrementSchema.make(row))
+    },
+  })
+
+  // Render your data...
+}
+```
+
+#### Query Format
+
+When querying from TypeScript, use the same format as CLI queries:
+
+```
+"_/{namespace}/{dataset}@{version}".{table}
+```
+
+- **namespace**: Usually `_` (default)
+- **dataset**: Your dataset name from `amp.config.ts` (e.g., `counter`)
+- **version**: Use `@dev` for development, `@0.0.1` for versioned, `@latest` for latest published
+- **table**: Table name (e.g., `incremented`, `decremented`, `block_summary`)
+
+**Examples:**
+- Development: `"_/counter@dev".incremented`
+- Specific version: `"_/counter@0.0.1".incremented`
+- Latest published: `"_/counter@latest".incremented`
+
+For complete examples, see the components in `app/src/components/`.
 
 ### Development Commands
 
