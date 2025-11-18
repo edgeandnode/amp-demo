@@ -4,12 +4,21 @@ Template for building an Amp Dataset and ingesting the Dataset data in an applic
 
 ## Table of Contents
 
-This document is broken up into parts to get you from 0 -> 1 -> published for your Amp Dataset.
-
 - [Prerequisites](#prerequisites)
 - [Quick Start](#quick-start)
-- [Installation](#installation)
-- [Dev Commands](#development-commands)
+- [Project Structure](#project-structure)
+- [Core Concepts](#core-concepts)
+  - [Event Tables vs Derived Tables](#event-tables-vs-derived-tables)
+  - [Streaming Model Limitations](#streaming-model-limitations)
+  - [Dataset Tags (@dev vs @latest)](#dataset-tags-dev-vs-latest)
+- [Querying Data](#querying-data)
+  - [TypeScript/JavaScript API](#typescriptjavascript-api)
+  - [CLI Queries](#cli-queries)
+- [Advanced Features](#advanced-features)
+  - [User-Defined Functions (UDFs)](#user-defined-functions-udfs)
+- [Development Workflow](#development-workflow)
+- [Troubleshooting](#troubleshooting)
+- [Command Reference](#command-reference)
 
 ## Prerequisites
 
@@ -18,205 +27,181 @@ This document is broken up into parts to get you from 0 -> 1 -> published for yo
 - **Node.js** (v22+) with **Pnpm** (v10+)
 - **Docker** for running services
 - **Foundry** for smart contract development (`curl -L https://foundry.paradigm.xyz | bash`)
-- **Just** as task runner (recommended, `cargo install just`)
-- **Amp** for running Amp (`curl --proto '=https' --tlsv1.2 -sSf https://ampup.sh/install | sh`)
+- **Just** as task runner (`cargo install just`)
+- **Amp** (`curl --proto '=https' --tlsv1.2 -sSf https://ampup.sh/install | sh`)
 
-> **⚠️ Version Requirements ⚠️**
+> **⚠️ Version Requirements**
 >
-> Please verify you're running Node.js v22+ and Pnpm v10+ before proceeding. Older versions may cause compatibility issues. Check your versions with `node --version` and `pnpm --version`.
+> Verify versions with `node --version` and `pnpm --version`. Older versions may cause compatibility issues.
 
 ## Quick Start
 
-1. **Clone and install dependencies:**
-
-   ```bash
-   # NOTE: Make sure to use `--recursive` to also clone the `forge-std` git submodule
-   git clone --recursive <repository-url>
-   cd amp-demo
-   just install
-   ```
-
-2. **Install Amp**
-
-   ```bash
-   curl --proto '=https' --tlsv1.2 -sSf https://ampup.sh/install | sh
-   ```
-
-3. **Start services:**
-
-   ```bash
-   just up
-   ```
-
-4. **Start development servers:**
-   ```bash
-   just dev
-   ```
-5. **Open your browser:**
-   - UI: http://localhost:5173
-
-## Installation
-
-### 1. Environment Setup
-
-Clone the repository (with `--recursive`) and install dependencies:
-
 ```bash
-# NOTE: Make sure to use `--recursive` to also clone the `forge-std` git submodule
+# Clone with submodules
 git clone --recursive <repository-url>
 cd amp-demo
+
+# Install dependencies
 just install
-```
 
-### 2. Start Infrastructure Services
-
-Launch PostgreSQL, Anvil (local Ethereum), and other services:
-
-```bash
+# Start infrastructure and deploy contracts
 just up
-```
 
-This starts:
-
-- **PostgreSQL** (port 5432) - Database backend
-- **Anvil** (port 8545) - Local Ethereum node
-- **Amp** (ports 1602, 1603, 1610) - Data engineering layer
-- **Adminer** (port 7402) - Database explorer
-
-### 3. Start Application
-
-Start the application frontend and the Amp development & proxy servers.
-
-```bash
+# Start development servers (frontend + Amp)
 just dev
 ```
 
-### 4. Validate Queries
+Open http://localhost:5173 in your browser. Interact with the counter to generate transactions.
 
-Start the Amp local studio to view and query your Amp Dataset and contract events; as well as the raw anvil logs, transactions and blogs.
+### Verify Everything Works
 
 ```bash
+# In a new terminal, query your dataset
+pnpm amp query 'SELECT * FROM "_/counter@dev".incremented LIMIT 5'
+
+# Or open Amp Studio
 just studio
 ```
 
-## Important Directories and Files
+## Project Structure
 
-- `amp.config.ts` — The main dataset manifest to read first; shows how ABI events become tables and where you add/iterate on derived SQL tables (see inline example). Start here to see how Amp wires the Counter ABI into queryable tables, then layer on your own transformations using SQL to create custom materialized views of event data.
-- `amp.config.extended-example.ts` — Optional example config that includes a derived union table to illustrate stacking transformations on top of the generated event tables.
-- `infra/amp/providers/` — Amp provider configs (e.g., Anvil connection credentials/endpoints).
-- `infra/amp/data` — Local data directory Amp uses at runtime (DuckDB/cache artifacts).
-- `infra/amp/datasets` — Generated dataset artifacts and cache produced by Amp runs.
-- `contracts/src/Counter.sol` — Demo smart contract emitting the `Incremented`/`Decremented` events the dataset ingests.
+```
+amp-demo/
+├── amp.config.ts                    # Main dataset configuration
+├── amp.config.extended-example.ts   # Example with derived tables
+├── contracts/src/Counter.sol        # Smart contract (Incremented/Decremented events)
+├── app/                             # Frontend application
+│   └── src/components/              # Query usage examples
+├── infra/
+│   ├── amp/
+│   │   ├── providers/               # Network connection configs
+│   │   ├── data/                    # Runtime data (generated, not committed)
+│   │   └── datasets/                # Build artifacts (generated, not committed)
+│   └── docker-compose.yaml          # Infrastructure services
+└── justfile                         # Task runner commands
+```
 
-### Understanding Datasets
+## Core Concepts
 
-- Raw tables (from `eventTables(abi)`) expose blockchain logs/events directly. Use them for ad-hoc exploration, debugging, and on-the-fly transforms at query time.
-- Derived tables (your SQL in `amp.config.ts`) materialize transformed results as new tables. Use them when you need faster repeat queries, curated shapes for the app, or heavier logic you don’t want to recompute per request.
+### Datasets Generating Event Tables vs Derived Tables
 
-Quick start:
-- Run `just up` then `just studio` to inspect raw tables (e.g., `incremented`, `decremented`) and try ad-hoc queries.
-- Try pasting the contents of `amp.config.extended-example.ts` into `amp.config.ts` to see a working derived table (creates a new `block_summary` table from the anvil dependency). Then tweak the SQL and rerun Amp to iterate quickly.
-- **After updating `amp.config.ts`**: Run `just down` then `just up` to re-register the dataset with your new tables. The dev server (`just dev`) will pick up the changes automatically.
-- When experimenting, clearing `infra/amp/data` and `infra/amp/datasets` can give you a clean slate for ingestion.
-- When querying via CLI, qualify tables with the dataset: the default namespace is `_` and the dataset name here is `counter`. **Important: Use `@dev` for development datasets**, not `@latest`. Example:
-  ```bash
-  pnpm amp query "SELECT block_num, timestamp, count FROM \"_/counter@dev\".incremented LIMIT 10"
-  ```
+**Event Tables** (from `eventTables(abi)`):
+- Automatically generated from your smart contract ABI
+- Map directly to blockchain events (e.g., `Incremented`, `Decremented`)
+- Available immediately after deployment
+- Use for ad-hoc queries and exploration
 
-**Note on Querying:**
-- The dataset must be **deployed and running** before you can query it
-- **Development datasets use `@dev` tag**: Query with `"_/counter@dev".tablename`, not `"_/counter@latest".tablename`
-- If you get `Unknown dataset reference '_/counter@latest'`, use `@dev` instead of `@latest`
-- Unlike derived tables in `amp.config.ts`, CLI queries have **full SQL capabilities** (can use `ORDER BY`, `LIMIT`, `JOIN`, etc.)
-- Query time operations don't have streaming limitations since they're executed on-demand, not incrementally
-- Tables will be empty until you interact with the frontend (increment/decrement the counter) to generate transactions
-
-**Troubleshooting "Unknown dataset reference":**
-
-If your queries fail with `Unknown dataset reference '_/counter@latest'`:
-
-1. **Use `@dev` instead of `@latest` for development datasets:**
-   ```bash
-   # ❌ Wrong - uses @latest (only for published versions)
-   pnpm amp query 'SELECT * FROM "_/counter".incremented LIMIT 10'
-
-   # ✅ Correct - uses @dev for development
-   pnpm amp query 'SELECT * FROM "_/counter@dev".incremented LIMIT 10'
-   ```
-
-2. **Check if counter dataset is deployed:**
-   ```bash
-   # Note: @dev datasets won't show in /datasets endpoint, but you can still query them
-   pnpm amp query 'SELECT COUNT(*) FROM "_/counter@dev".incremented'
-   ```
-
-3. **If query still fails, manually deploy:**
-   ```bash
-   pnpm ampctl dataset deploy _/counter@dev
-   ```
-
-4. **Verify data is being extracted:**
-   - Interact with frontend (increment/decrement) to generate transactions
-   - Check logs: `docker compose -f infra/docker-compose.yaml logs amp | grep counter`
-   - Look for data directory: `ls -la infra/amp/data/counter/`
-
-5. **Common issues:**
-   - Using `@latest` instead of `@dev` (most common!)
-   - Config has streaming violations (see "Streaming Model Limitations" below)
-   - Dataset failed to deploy due to SQL errors
-   - No data yet - need to interact with frontend to generate transactions
-   - Services need restart: `just down && just up`
+**Derived Tables** (optional custom SQL in `amp.config.ts`):
+- Materialized views created from SQL queries
+- Must follow streaming model constraints
+- Can only query tables from **dependencies** (e.g., `anvil.blocks`, `anvil.logs`)
+- Cannot reference other tables in the same dataset (no self-referencing)
+- Use for complex transformations and optimized repeated queries
 
 ### Streaming Model Limitations
 
-Derived tables in Amp use an **incremental/streaming model** to process new blocks as they arrive. This requires all SQL operations to be **incrementally updatable**. The following operations are **not supported** in derived tables:
+Derived tables use an **incremental/streaming model** - they process new blocks as they arrive. This requires all operations to be incrementally updatable.
 
-**Supported Operations:**
-- `WHERE` - Filter rows based on conditions
-- `JOIN` - Join with tables from dependencies (e.g., `anvil.blocks`, `anvil.logs`)
-- `UNION ALL` - Combine multiple queries
-- Window functions with partitioning (e.g., `PARTITION BY block_num`)
-- Simple projections and column transformations
+**✅ Supported Operations:**
+- `WHERE` - Filter rows
+- `JOIN` - Join with dependency tables
+- `UNION ALL` - Combine queries
+- Window functions with `PARTITION BY block_num`
+- Projections and column transformations
 
-**Unsupported Operations:**
-- `LIMIT` - Cannot limit results in a streaming context
-- `OFFSET` - Cannot skip rows in a streaming context
-- `ORDER BY` (global) - Cannot globally sort unbounded streaming data
-- `DISTINCT` - Aggregate operation not supported in subqueries or complex contexts
-- `GROUP BY` with aggregates in subqueries (e.g., `SELECT DISTINCT` in `WHERE IN`)
-- Window functions with unbounded frames (e.g., `ROW_NUMBER()` over entire table)
-- Non-deterministic functions (e.g., `RANDOM()`, `NOW()`)
-- Self-joins or recursive queries referencing tables in the same dataset
+**❌ Unsupported Operations:**
+- `LIMIT`, `OFFSET` - Cannot limit streaming data
+- `ORDER BY` (global) - Cannot sort unbounded streams
+- `DISTINCT` in subqueries - Aggregate operation
+- `GROUP BY` with aggregates in subqueries
+- Unbounded window functions (e.g., `ROW_NUMBER()`)
+- Non-deterministic functions (`RANDOM()`, `NOW()`)
+- Self-referencing (cannot query tables in same dataset)
 
-**Best Practices:**
-- Always include `block_num` in your queries for efficient incremental processing
-- Use `WHERE` clauses to filter early and reduce data volume
-- Partition window functions by `block_num` when possible
-- Test your derived table SQL with `pnpm amp build` before deploying
+**Example - Valid Derived Table:**
+```typescript
+// ✅ Queries dependency (anvil.blocks)
+tables: {
+  block_summary: {
+    sql: `
+      SELECT block_num, hash, timestamp, gas_used
+      FROM anvil.blocks
+      WHERE gas_used > 0
+    `,
+  },
+}
+```
 
-**Important Limitation - Self-Referencing:**
-- Derived tables **cannot reference other tables in the same dataset**
-- You cannot query `incremented` or `decremented` from within a derived table in the `counter` dataset
-- Derived tables can only query tables from **dependencies** (e.g., `anvil.blocks`, `anvil.logs`, `anvil.transactions`)
-- If you need to combine event tables (like `incremented` + `decremented`), you have two options:
-  1. **Query time** - Combine them in your application queries (e.g., using `UNION ALL` in your app)
-  2. **User-Defined Functions (UDFs)** - Write custom functions to process and combine event data (see `amp.config.ts` for UDF examples)
-- Example: ✅ `SELECT * FROM anvil.blocks` (queries dependency) vs ❌ `SELECT * FROM incremented` (self-reference)
+**Example - Invalid:**
+```typescript
+// ❌ Self-reference (queries incremented in counter dataset)
+tables: {
+  combined: {
+    sql: `SELECT * FROM incremented UNION ALL SELECT * FROM decremented`,
+  },
+}
+```
 
-> **Note:** UDFs allow you to write custom TypeScript/JavaScript functions that can process rows from event tables and output combined/transformed data. This is the recommended approach for complex transformations that can't be expressed in SQL or need to reference tables within the same dataset.
+**Best Practices for Self-Referencing:**
+1. **Query-time joins** - Combine tables in your application queries
+2. **UDFs** - Write custom TypeScript functions (see [UDFs](#user-defined-functions-udfs))
+
+### Dataset Tags (@dev vs @latest)
+
+Amp uses version tags to reference datasets:
+
+- `@dev` - Development datasets (local, unpublished)
+- `@0.0.1`, `@1.2.3` - Specific published versions
+- `@latest` - Latest published version
+
+**Critical:** Development datasets must use `@dev`:
+```bash
+# ❌ Wrong - defaults to @latest
+pnpm amp query 'SELECT * FROM "_/counter".incremented'
+
+# ✅ Correct - explicitly use @dev
+pnpm amp query 'SELECT * FROM "_/counter@dev".incremented'
+```
+
+## Querying Data
+
+### TypeScript/JavaScript API
+
+The frontend uses `@edgeandnode/amp` - a type-safe library built on Apache Arrow Flight.
+
+### CLI Queries
+
+```bash
+# Query incremented events
+pnpm amp query 'SELECT * FROM "_/counter@dev".incremented LIMIT 10'
+
+# Query decremented events
+pnpm amp query 'SELECT * FROM "_/counter@dev".decremented LIMIT 10'
+
+# Join with anvil dependency
+pnpm amp query 'SELECT i.count, b.timestamp FROM "_/counter@dev".incremented i JOIN "_/anvil@0.0.1".blocks b ON i.block_num = b.block_num'
+
+# Check if data exists
+pnpm amp query 'SELECT COUNT(*) FROM "_/counter@dev".incremented'
+```
+
+**Important:**
+- Always use `@dev` for development datasets
+- Tables are empty until you interact with the frontend to generate transactions
+- Full SQL capabilities available (unlike derived tables in `amp.config.ts`)
+
+## Advanced Features
 
 ### User-Defined Functions (UDFs)
 
-UDFs allow you to write custom TypeScript/JavaScript functions to process and transform data beyond what's possible with SQL alone. This is particularly useful for:
+UDFs allow custom TypeScript/JavaScript functions to process and transform data beyond SQL limitations. Use cases:
 
-- **Combining event tables** from the same dataset (e.g., merging `incremented` and `decremented`)
-- **Complex transformations** that can't be expressed in streaming SQL
-- **Custom business logic** that requires procedural code
-- **Data enrichment** by calling external APIs or performing calculations
+- Combining event tables from the same dataset
+- Complex transformations not expressible in streaming SQL
+- Custom business logic requiring procedural code
+- Data enrichment via external APIs
 
-#### UDF Structure
-
-UDFs are defined in the `functions` section of your `amp.config.ts`:
+#### Define UDF in amp.config.ts
 
 ```typescript
 import { defineDataset, eventTables } from "@edgeandnode/amp"
@@ -229,7 +214,6 @@ export default defineDataset(({ functionSource }) => ({
   },
   tables: eventTables(abi),
   functions: {
-    // Define your UDF here
     combineEvents: {
       source: functionSource("./functions/combineEvents.ts"),
       inputTypes: ["incremented", "decremented"],
@@ -239,9 +223,9 @@ export default defineDataset(({ functionSource }) => ({
 }))
 ```
 
-#### UDF Implementation
+#### Implement UDF
 
-Create a function file (e.g., `functions/combineEvents.ts`):
+Create `functions/combineEvents.ts`:
 
 ```typescript
 // Process rows from incremented and decremented tables
@@ -258,103 +242,144 @@ export default function combineEvents(incremented: any[], decremented: any[]) {
 }
 ```
 
-### Querying from TypeScript/JavaScript
+## Development Workflow
 
-The frontend uses the `@edgeandnode/amp` TypeScript library to query datasets. This provides a type-safe, streaming-friendly API built on top of Apache Arrow Flight.
+### Making Changes to amp.config.ts
 
-#### Installation
+1. Edit `amp.config.ts` (or copy from `amp.config.extended-example.ts`)
+2. Restart services to re-register and deploy:
+   ```bash
+   just down
+   just up
+   ```
+3. The dev server will automatically pick up changes
+
+### Testing Derived Tables
+
+Before deploying, validate your SQL:
 
 ```bash
-npm install @edgeandnode/amp @connectrpc/connect-web effect apache-arrow
+# Build manifest to check for errors
+pnpm amp build -o /tmp/test-manifest.json
 ```
 
-#### Setup
+Common errors:
+- `UnqualifiedTable` - Forgot to qualify table name (use `anvil.blocks`, not `blocks`)
+- `non-incremental operation: Limit` - Used unsupported operation
+- `non-incremental operation: Aggregate` - Used DISTINCT/GROUP BY in complex context
 
-Create a runtime with Arrow Flight transport:
+### Iterating Quickly
 
-```typescript
-// lib/runtime.ts
-import { createConnectTransport } from "@connectrpc/connect-web"
-import { ArrowFlight } from "@edgeandnode/amp"
-import { ManagedRuntime } from "effect"
-
-const transport = createConnectTransport({ baseUrl: "/amp" })
-const layer = ArrowFlight.layer(transport)
-
-export const runtime = ManagedRuntime.make(layer)
+```bash
+# Clean slate (clears cached data)
+just down
+rm -rf infra/amp/data infra/amp/datasets
+just up
 ```
 
-#### Usage Example
+### Using amp.config.extended-example.ts
 
-Query your dataset using SQL with full type safety:
+The extended example shows a working derived table:
 
-```typescript
-import { ArrowFlight } from "@edgeandnode/amp"
-import { useQuery } from "@tanstack/react-query"
-import { Table } from "apache-arrow"
-import { Chunk, Effect, Schema, Stream } from "effect"
-import { runtime } from "./lib/runtime"
+```bash
+# Copy extended example
+cp amp.config.extended-example.ts amp.config.ts
 
-// Define your schema
-const IncrementSchema = Schema.Struct({
-  block_num: Schema.BigInt,
-  timestamp: Schema.NonNegativeInt,
-  count: Schema.String,
-})
-type IncrementSchema = typeof IncrementSchema.Type
-
-// Create query effect
-const IncrementQueryLive = Effect.gen(function* () {
-  const arrow = yield* ArrowFlight.ArrowFlight
-
-  // Use @dev for development datasets
-  const query = `SELECT block_num, timestamp, count FROM "_/counter@dev".incremented ORDER BY block_num DESC`
-  const queryTemplate: TemplateStringsArray = Object.assign([query], { raw: [query] })
-
-  return yield* arrow.query(queryTemplate).pipe(Stream.runCollect)
-})
-
-// Use in React component with React Query
-export function IncrementTable() {
-  const { data } = useQuery({
-    queryKey: ["Amp", "Demo", { table: "increments" }],
-    async queryFn() {
-      const batch = Chunk.toArray(await runtime.runPromise(IncrementQueryLive))
-      const table = new Table(batch)
-      return [...table].map((row) => IncrementSchema.make(row))
-    },
-  })
-
-  // Render your data...
-}
+# Restart to apply
+just down && just up
 ```
 
-#### Query Format
+This adds a `block_summary` table querying the `anvil` dependency. Modify the SQL to experiment with derived tables.
 
-When querying from TypeScript, use the same format as CLI queries:
+## Troubleshooting
 
+### "Unknown dataset reference '_/counter@latest'"
+
+**Cause:** Development datasets use `@dev`, not `@latest`.
+
+**Fix:**
+```bash
+# ❌ Wrong
+pnpm amp query 'SELECT * FROM "_/counter".incremented'
+
+# ✅ Correct
+pnpm amp query 'SELECT * FROM "_/counter@dev".incremented'
 ```
-"_/{namespace}/{dataset}@{version}".{table}
+
+### No Data in Tables
+
+**Cause:** No transactions generated yet.
+
+**Fix:** Interact with the frontend (http://localhost:5173) to increment/decrement the counter.
+
+### Dataset Not Deploying
+
+**Symptoms:** Queries fail, no data directories created.
+
+**Debug steps:**
+```bash
+# Check logs
+docker compose logs amp | grep counter
+
+# Verify data directory exists
+ls -la infra/amp/data/counter/
+
+# Manually deploy
+pnpm ampctl dataset deploy _/counter@dev
 ```
 
-- **namespace**: Usually `_` (default)
-- **dataset**: Your dataset name from `amp.config.ts` (e.g., `counter`)
-- **version**: Use `@dev` for development, `@0.0.1` for versioned, `@latest` for latest published
-- **table**: Table name (e.g., `incremented`, `decremented`, `block_summary`)
+**Common causes:**
+- SQL errors in derived tables (check build output)
+- Streaming violations (see [Streaming Model Limitations](#streaming-model-limitations))
+- Services not fully started (wait for `just up` to complete)
 
-**Examples:**
-- Development: `"_/counter@dev".incremented`
-- Specific version: `"_/counter@0.0.1".incremented`
-- Latest published: `"_/counter@latest".incremented`
+### Config Changes Not Applying
 
-For complete examples, see the components in `app/src/components/`.
+**Cause:** Services need full restart to re-register dataset.
 
-### Development Commands
+**Fix:**
+```bash
+just down
+just up
+```
 
+### Build Errors
 
-#### Basic Operations
+**"table 'incremented' must be qualified":**
+- You're trying to self-reference. Use dependency tables instead or UDFs.
 
-- `just install` - Install all dependencies
-- `just up [services]` - Start infrastructure services
-- `just dev` - Run all development services in parallel
-- `just down` - Stop all services and clean up
+**"non-incremental operation: Limit":**
+- Remove `LIMIT`, `ORDER BY`, `DISTINCT` from derived table SQL.
+
+**"invalid value 'dev' for '--tag'":**
+- Don't use `-t dev` flag. Use `@dev` in dataset reference only.
+
+## Command Reference
+
+### Basic Operations
+
+- `just install` - Install all dependencies (npm + forge)
+- `just up` - Start infrastructure, deploy contracts, register datasets
+- `just dev` - Run frontend + Amp dev server (parallel)
+- `just down` - Stop all services, clean volumes
+- `just studio` - Open Amp Studio for interactive queries
+
+### Advanced Commands
+
+- `just logs [service]` - Tail service logs
+- `just stop [service]` - Stop specific service
+- `pnpm amp build` - Build dataset manifest (validate SQL)
+- `pnpm ampctl dataset deploy _/counter@dev` - Manually deploy dataset
+- `pnpm amp query "<sql>"` - Run ad-hoc query
+
+### Services Started by `just up`
+
+- **PostgreSQL** (port 5432) - Database backend
+- **Anvil** (port 8545) - Local Ethereum node
+- **Amp** (ports 1602, 1603, 1610) - Data engineering layer
+- **Adminer** (port 7402) - Database explorer UI
+
+### What `just dev` Runs
+
+1. **Frontend** (`pnpm dev`) - Vite dev server on port 5173
+2. **Amp Dev Server** (`pnpm amp dev`) - Watches config changes, proxies queries
