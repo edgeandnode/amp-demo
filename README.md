@@ -184,7 +184,7 @@ This opens a web interface where you can test SQL queries before adding them to 
 
 The frontend (`app/src`) shows how to query Amp datasets from TypeScript using the `@edgeandnode/amp` client library.
 
-Example from `app/src/components/IncrementedEvents.tsx`:
+Example from `app/src/components/IncrementTable.tsx`:
 
 ```typescript
 import { useQuery } from "@edgeandnode/amp";
