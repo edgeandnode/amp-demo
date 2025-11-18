@@ -19,6 +19,7 @@ Template for building an Amp Dataset and ingesting the Dataset data in an applic
 - [Development Workflow](#development-workflow)
 - [Troubleshooting](#troubleshooting)
 - [Command Reference](#command-reference)
+- [Further Reading](#further-reading)
 
 ## Prerequisites
 
@@ -82,6 +83,8 @@ amp-demo/
 ```
 
 ## Core Concepts
+
+For detailed terminology and architecture concepts, see [docs/glossary.md](docs/glossary.md).
 
 ### Datasets Generating Event Tables vs Derived Tables
 
@@ -188,11 +191,9 @@ pnpm amp query 'SELECT * FROM "_/counter@dev".decremented LIMIT 10'
 
 ### Built-in SQL Functions
 
-Amp provides specialized SQL functions for working with blockchain data:
+Amp provides specialized SQL functions for working with blockchain data. For complete documentation, see [docs/udfs.md](docs/udfs.md).
 
 #### EVM Functions
-
-bring in docs from amp private for reference
 
 **`evm_decode_log`** - Decode EVM event logs:
 ```sql
@@ -375,3 +376,10 @@ just up
 
 1. **Frontend** (`pnpm dev`) - Vite dev server on port 5173
 2. **Amp Dev Server** (`pnpm amp dev`) - Watches config changes, proxies queries
+
+## Further Reading
+
+- **[docs/config.md](docs/config.md)** - Complete Amp configuration reference (object stores, providers, environment variables)
+- **[docs/modes.md](docs/modes.md)** - Production deployment patterns (single-node vs distributed, scaling strategies)
+- **[docs/glossary.md](docs/glossary.md)** - Terminology and architecture concepts
+- **[docs/udfs.md](docs/udfs.md)** - Complete built-in SQL function reference
