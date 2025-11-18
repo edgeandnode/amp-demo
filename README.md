@@ -64,7 +64,7 @@ Clone the repository (with `--recursive`) and install dependencies:
 ```bash
 # NOTE: Make sure to use `--recursive` to also clone the `forge-std` git submodule
 git clone --recursive <repository-url>
-cd battleship
+cd amp-demo
 just install
 ```
 
@@ -99,7 +99,26 @@ Start the Amp local studio to view and query your Amp Dataset and contract event
 just studio
 ```
 
-## Usage
+## Important Directories and Files
+
+- `amp.config.ts` — The main dataset manifest to read first; shows how ABI events become tables and where you add/iterate on derived SQL tables (see inline example). Start here to see how Amp wires the Counter ABI into queryable tables, then layer on your own transformations using SQL to create custom materialized views of event data.
+- `amp.config.extended-example.ts` — Optional example config that includes a derived union table to illustrate stacking transformations on top of the generated event tables.
+- `infra/amp/providers/` — Amp provider configs (e.g., Anvil connection credentials/endpoints).
+- `infra/amp/data` — Local data directory Amp uses at runtime (DuckDB/cache artifacts).
+- `infra/amp/datasets` — Generated dataset artifacts and cache produced by Amp runs.
+- `contracts/src/Counter.sol` — Demo smart contract emitting the `Incremented`/`Decremented` events the dataset ingests.
+
+### Understanding Datasets
+
+- Raw tables (from `eventTables(abi)`) expose blockchain logs/events directly. Use them for ad-hoc exploration, debugging, and on-the-fly transforms at query time.
+- Derived tables (your SQL in `amp.config.ts`) materialize transformed results as new tables. Use them when you need faster repeat queries, curated shapes for the app, or heavier logic you don’t want to recompute per request.
+
+Quick start:
+- Run `just up` then `just studio` to inspect raw tables (e.g., `incremented`, `decremented`) and try ad-hoc queries.
+- Try pasting the contents of `amp.config.extended-example.ts` into `amp.config.ts` to see a working derived table (creates a new `counter_event_union` table that unions the events with a direction flag). Then tweak the SQL and rerun Amp to iterate quickly.
+- When experimenting, clearing `infra/amp/data` and `infra/amp/datasets` can give you a clean slate for ingestion.
+- When querying via CLI, qualify tables with the dataset: the default namespace is `_` and the dataset name here is `counter`, so use `"_/counter".incremented`, `"_/counter".decremented`, or `"_/counter".counter_event_union` (the slash requires quoting). Example:  
+  `pnpm amp query "SELECT block_num, timestamp, count AS value, 'increment' AS direction FROM \"_/counter\".incremented UNION ALL SELECT block_num, timestamp, count AS value, 'decrement' AS direction FROM \"_/counter\".decremented"`.
 
 ### Development Commands
 
