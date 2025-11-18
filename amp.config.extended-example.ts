@@ -7,7 +7,7 @@ export default defineDataset(() => {
   const baseTables = eventTables(abi)
 
   return {
-    name: "counter",
+    name: "simple_filter",
     network: "anvil",
     description: "Demo dataset with event tables and a custom table from anvil blocks.",
     readme: `# Amp Demo - Extended Example
