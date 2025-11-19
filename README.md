@@ -188,7 +188,7 @@ tables: {
 }
 ```
 
-**Example - Invalid:**
+**Example - Invalid Derived Table:**
 ```typescript
 // Invalid: Uses GROUP BY aggregation (not supported in streaming model)
 tables: {
