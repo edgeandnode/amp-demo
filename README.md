@@ -1,12 +1,18 @@
-# Amp Demo
+# Amp - Quickstart Template for ETHGlobal Argentina
 
-Template for building an Amp Dataset and ingesting the Dataset data in an application. Demos simple Amp config usage and consumption.
+Template for building an Amp Dataset and ingesting the Dataset data in an application. Demos simple Amp config usage and consumption from a local and onchain development.
 
-## Supported Chains
+For more detailed documentation on Amp, see the [Amp Docs](docs/README.md). 
 
-Currently, supported chains are Ethereum, Arbitrum, and Base. 
+## Current Supported Chains
 
-Foundry is supported for local development. 
+ - Foundry Anvil (local development)
+ - Ethereum mainnet 
+ - Arbitrum mainnet
+ - Base mainnet
+ - Base Sepolia. 
+
+Roadmap includes all major chains.  
 
 ## Table of Contents
 
@@ -27,9 +33,9 @@ Foundry is supported for local development.
 - [Command Reference](#command-reference)
 - [Further Reading](#further-reading)
 
-## Prerequisites
+# Prerequisites
 
-### Required Software
+## Required Software
 
 - **Node.js** (v22+) with **Pnpm** (v10+)
 - **Docker** for running services
@@ -41,7 +47,7 @@ Foundry is supported for local development.
 >
 > Verify versions with `node --version` and `pnpm --version`. Older versions may cause compatibility issues.
 
-## Quick Start
+# Quick Start
 
 ```bash
 # Clone with submodules
@@ -60,14 +66,11 @@ just dev
 
 Open http://localhost:5173 in your browser. Interact with the counter to generate transactions.
 
-### Verify Everything Works
+## Test Processes With a Query
 
 ```bash
 # In a new terminal, query your dataset
 pnpm amp query 'SELECT * FROM "_/counter@dev".incremented LIMIT 5'
-
-# Or open Amp Studio
-just studio
 ```
 
 ## Project Structure
@@ -88,36 +91,52 @@ amp-demo/
 └── justfile                         # Task runner commands
 ```
 
-## Core Concepts
+## Amp Core Concepts
 
-For detailed terminology and architecture concepts, see [docs/glossary.md](docs/glossary.md).
+### Datasets
 
-### Datasets Generating Event Tables vs Derived Tables
+Datasets are a collection of tables that represents a unit of ownership, publishing and versioning. Datasets are identified by a namespace, name, and version/revision, and define how data is extracted, transformed, and materialized into Parquet files for querying.
 
-**Event Tables** (from `eventTables(abi)`):
-- Automatically generated from your smart contract ABI
-- Map directly to blockchain events (e.g., `Incremented`, `Decremented`)
+Read more about Datasets in the [docs/glossary.md](docs/glossary.md).
+
+#### Datasets Generate Queryable Tables 
+
+`amp.config.ts` is responsible for defining datasets as well as the tables generated from these datasets. 
+
+By passing in our abis to `eventTables(abi)`, tables are automatically generated and filled with decoded raw blockchain data. 
+
+#### Event Tables vs Derived Tables
+
+There are two types of tables, raw tables and derived tables.
+
+**Raw Tables** (from `eventTables(abi)`):
+- Purpose: Store decoded blockchain event data that maps 1:1 with on-chain events. Best for simple queries or when you need flexibility to transform data at query-time. Query latency scales with transformation complexity.
+- Automatically generated from smart contract ABIs.
+- Maps directly to blockchain events (e.g. in this template demo app, our raw tables map to `Incremented`, `Decremented`)
 - Available immediately after deployment
-- Use for ad-hoc queries and exploration
 
 **Derived Tables** (optional custom SQL in `amp.config.ts`):
-- Materialized views created from SQL queries
-- Must follow streaming model constraints
-- Can only query tables from **dependencies** (e.g., `anvil.blocks`, `anvil.logs`)
-- Cannot reference other tables in the same dataset (no self-referencing)
-- Use for complex transformations and optimized repeated queries
+- Purpose: Store pre-transformed blockchain data for complex queries. Use when you need subsecond query latency on complex joins or computations. 
+- Example of a simple custom SQL statement generating a derived table in `amp.config.extended-example.ts`.
+- Current caveats:
+   - Can only query tables from **dependencies** (e.g., `anvil.blocks`, `anvil.logs`)
+   - Cannot reference other tables in the same dataset (no self-referencing)
+   - Must follow [streaming model limitations](#streaming-model-limitations)
 
-### Streaming Model Limitations
+##### Streaming Model Limitations
 
 Derived tables use an **incremental/streaming model** - they process new blocks as they arrive. This requires all operations to be incrementally updatable.
 
-**✅ Supported Operations:**
+**✅ Supported Streaming Operations:**
+These SQL operations can be used to generate derived tables for querying. 
 - `WHERE` - Filter rows
 - `JOIN` - Join with dependency tables
 - `UNION ALL` - Combine queries
 - Projections and column transformations
 
-**❌ Unsupported Operations:**
+**❌ Unsupported Streaming Operations:**
+Please note: These operations are supported by batch queries
+
 - `LIMIT`, `OFFSET` - Cannot limit streaming data
 - `ORDER BY` (global) - Cannot sort unbounded streams
 - `DISTINCT` in subqueries - Aggregate operation
@@ -125,7 +144,6 @@ Derived tables use an **incremental/streaming model** - they process new blocks 
 - Non-deterministic functions (`RANDOM()`, `NOW()`)
 - Self-referencing (cannot query tables in same dataset)
 - Window functions
-
 
 **Example - Valid Derived Table:**
 ```typescript
@@ -141,32 +159,31 @@ tables: {
 }
 ```
 
-change to group by
-
 **Example - Invalid:**
 ```typescript
-// ❌ Self-reference (queries incremented in counter dataset)
+// ❌ Uses GROUP BY aggregation (not supported in streaming model)
 tables: {
-  combined: {
-    sql: `SELECT * FROM incremented UNION ALL SELECT * FROM decremented`,
+  block_summary: {
+    sql: `
+      SELECT block_num, COUNT(*) as event_count
+      FROM anvil.logs
+      GROUP BY block_num
+    `,
   },
 }
 ```
+**Workaround for Unsupported Operations:**
+   - Perform these operations at **query-time** instead of in derived tables. Raw tables support all SQL operations when queried, including `GROUP BY`, `DISTINCT`, `ORDER BY`, and `LIMIT`.
 
-workaround for group bys
+#### Dataset Tags (@dev vs @latest)
 
-**Workaround for Group By's:**
-- **Query-time joins** - Combine tables in your application queries using `UNION ALL` or `JOIN`
-
-### Dataset Tags (@dev vs @latest)
-
-Amp uses version tags to reference datasets:
+Amp uses version tags to reference Datasets:
 
 - `@dev` - Development datasets (local, unpublished)
 - `@0.0.1`, `@1.2.3` - Specific published versions
 - `@latest` - Latest published version
 
-**Critical:** Development datasets must use `@dev`:
+Development datasets must use `@dev`:
 ```bash
 # ❌ Wrong - defaults to @latest
 pnpm amp query 'SELECT * FROM "_/counter".incremented'
@@ -187,11 +204,7 @@ The frontend uses `@edgeandnode/amp` - a type-safe library built on Apache Arrow
 # Query incremented events
 pnpm amp query 'SELECT * FROM "_/counter@dev".incremented LIMIT 10'
 
-# Query decremented events
-pnpm amp query 'SELECT * FROM "_/counter@dev".decremented LIMIT 10'
-
 ```
-
 
 ## Advanced Features
 
@@ -273,7 +286,6 @@ Common errors:
 ```bash
 # Clean slate (clears cached data)
 just down
-rm -rf infra/amp/data infra/amp/datasets
 just up
 ```
 
