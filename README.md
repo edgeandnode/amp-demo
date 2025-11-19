@@ -25,7 +25,7 @@ Example Use Cases:
 **Qualification Requirements**
 Builders should demonstrate how Amp datasets can power real-world insights, analytics, alerts, agent workflows, risk dashboards, or user experiences across DeFi, NFTs, RWAs, or AI.
 
-Learn about other prize tracks such as building with Subgraphs, Substreams, and Token API [here](https://ethglobal.com/events/buenosaires/prizes/the-graph)
+Learn about other prize tracks such as building with Subgraphs, Substreams, Token API, and The Graph's MCP servers [here](https://ethglobal.com/events/buenosaires/prizes/the-graph)
 
 ## Table of Contents
 
@@ -251,7 +251,7 @@ cp amp.config.extended-example.ts amp.config.ts
 ```typescript
 tables: {
   ...baseTables,  // Spread existing event tables
-  simple_filter: {  // Add your derived table
+  simple_filter: {  // Add a derived table 
     sql: `
       SELECT block_num, gas_used
       FROM anvil.blocks
@@ -261,13 +261,13 @@ tables: {
 }
 ```
 
-**3. Deploy your changes:**
+**3. Deploy changes:**
 ```bash
 just down
 just up
 ```
 
-**4. Test your derived table:**
+**4. Test:**
 ```bash
 # Query the new derived table
 pnpm amp query 'SELECT * FROM "_/simple_filter@dev".simple_filter LIMIT 10'
@@ -315,7 +315,6 @@ For complete documentation and examples, see [docs/udfs.md](docs/udfs.md).
 just down
 just up
 ```
-
 
 ## Testing Derived Tables
 
@@ -394,6 +393,7 @@ just up
 - `just dev` - Run frontend + Amp dev server (parallel)
 - `just down` - Stop all services, clean volumes
 - `just studio` - Open Amp Studio for interactive queries
+- `just logs` - View logs from all processes
 
 ## Advanced Commands
 
