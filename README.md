@@ -1,6 +1,6 @@
 # Amp - Template for ETHGlobal Buenos Aires
 
-Template for building an Amp Dataset and ingesting the Dataset data in an application. Demos simple Amp config usage and consumption from a local and onchain development.
+Template for building an Amp dataset and ingesting the dataset data in an application. Demos simple Amp config usage and consumption from a local and onchain development.
 
 For more detailed documentation on Amp, see the [Amp Docs](docs/README.md). 
 
@@ -219,7 +219,7 @@ pnpm amp query 'SELECT * FROM "_/counter@dev".incremented LIMIT 10'
 ```
 
 ## Dataset Tags (@dev vs @latest)
-Amp uses version tags to reference Datasets:
+Amp uses version tags to reference datasets:
 
 - `@dev` - Development datasets (local, unpublished)
 - `@0.0.1`, `@1.2.3` - Specific published versions
