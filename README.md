@@ -206,54 +206,6 @@ pnpm amp query 'SELECT * FROM "_/counter@dev".incremented LIMIT 10'
 
 ```
 
-## Advanced Features
-
-### Built-in SQL Functions
-
-Amp provides specialized SQL functions for working with blockchain data. For complete documentation, see [docs/udfs.md](docs/udfs.md).
-
-#### EVM Functions
-
-**`evm_decode_log`** - Decode EVM event logs:
-```sql
-SELECT evm_decode_log(topic1, topic2, topic3, data, 'Transfer(address from, address to, uint256 value)') AS event
-FROM anvil.logs
-```
-
-**`evm_topic`** - Get topic hash from event signature:
-```sql
-SELECT * FROM anvil.logs
-WHERE topic0 = evm_topic('Transfer(address,address,uint256)')
-```
-
-**`evm_decode_params`** - Decode function parameters:
-```sql
-SELECT evm_decode_params(input, 'function approve(address _spender, uint256 _value)') AS params
-FROM anvil.transactions
-```
-
-**`evm_encode_params`** - Encode function parameters:
-```sql
-SELECT evm_encode_params(address_col, amount_col, 'function transfer(address _to, uint256 _value)') AS encoded
-FROM my_table
-```
-
-**`evm_encode_type` / `evm_decode_type`** - Encode/decode Solidity types:
-```sql
-SELECT evm_encode_type(CAST(635 AS DECIMAL(39, 0)), 'uint256') AS encoded
-SELECT evm_decode_type(data, 'uint256') AS decoded
-```
-
-#### Blockchain Functions
-
-**`${dataset}.eth_call`** - Execute read-only contract calls:
-```sql
-SELECT anvil.eth_call(from_addr, to_addr, input_data, CAST(block_num AS STRING))
-FROM anvil.transactions
-```
-
-
-These functions are already available in your SQL queries - no additional setup required.
 
 ## Development Workflow
 
@@ -304,6 +256,29 @@ just down && just up
 new naming
 
 This adds a `simple_filter` table querying the `anvil` dependency. Modify the SQL to experiment with derived tables.
+
+
+## Advanced Features
+
+### Built-in SQL Functions and UDFs
+
+Amp provides specialized SQL functions for blockchain data operations:
+
+**When you need them:**
+- Working directly with raw logs from dependencies (e.g., `anvil.logs`)
+- Custom encoding/decoding beyond what `eventTables(abi)` provides
+- Making read-only contract calls via `eth_call`
+
+**Available functions:**
+- `evm_decode_log` - Decode raw event logs
+- `evm_topic` - Get topic hash from event signature
+- `evm_decode_params` / `evm_encode_params` - Decode/encode function parameters
+- `evm_decode_type` / `evm_encode_type` - Decode/encode Solidity types
+- `${dataset}.eth_call` - Execute read-only contract calls
+
+**Note:** `eventTables(abi)` already handles event decoding automatically. You typically only need these functions for advanced use cases.
+
+For complete documentation and examples, see [docs/udfs.md](docs/udfs.md).
 
 ## Troubleshooting
 
