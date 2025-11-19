@@ -1,4 +1,4 @@
-# Amp - Quickstart Template for ETHGlobal Argentina
+# Amp - Template for ETHGlobal Argentina
 
 Template for building an Amp Dataset and ingesting the Dataset data in an application. Demos simple Amp config usage and consumption from a local and onchain development.
 
@@ -19,16 +19,18 @@ Roadmap includes all major chains.
 - [Prerequisites](#prerequisites)
 - [Quick Start](#quick-start)
 - [Project Structure](#project-structure)
-- [Core Concepts](#core-concepts)
-  - [Event Tables vs Derived Tables](#event-tables-vs-derived-tables)
+- [Datasets](#datasets)
+  - [Generating Tables](#generating-tables)
   - [Streaming Model Limitations](#streaming-model-limitations)
-  - [Dataset Tags (@dev vs @latest)](#dataset-tags-dev-vs-latest)
 - [Querying Data](#querying-data)
   - [TypeScript/JavaScript API](#typescriptjavascript-api)
   - [CLI Queries](#cli-queries)
+  - [Dataset Tags (@dev vs @latest)](#dataset-tags-dev-vs-latest)
+- [Local Development Workflows](#local-development-workflows)
+  - [Querying Data](#querying-data-1)
+  - [Creating a Derived Dataset](#creating-a-derived-dataset)
 - [Advanced Features](#advanced-features)
-  - [Built-in SQL Functions](#built-in-sql-functions)
-- [Development Workflow](#development-workflow)
+  - [Built-in SQL Functions and UDFs](#built-in-sql-functions-and-udfs)
 - [Troubleshooting](#troubleshooting)
 - [Command Reference](#command-reference)
 - [Further Reading](#further-reading)
@@ -91,9 +93,7 @@ amp-demo/
 └── justfile                         # Task runner commands
 ```
 
-## Amp Core Concepts
-
-### Datasets
+# Datasets
 
 Datasets are a collection of tables that represents a unit of ownership, publishing and versioning. Datasets are identified by a namespace, name, and version/revision, and define how data is extracted, transformed, and materialized into Parquet files for querying.
 
@@ -101,7 +101,7 @@ Read more about datasets in the [docs/glossary.md](docs/glossary.md).
 
 Explore published datasets in the [Amp Dataset Registry](https://playground.amp.thegraph.com/).
 
-#### Generating Tables 
+## Generating Tables 
 
 `amp.config.ts` is responsible for defining datasets as well as the tables generated from these datasets. 
 
@@ -121,7 +121,7 @@ There are two types of tables, raw tables and derived tables.
    - Cannot reference other tables in the same dataset (no self-referencing)
    - Must follow [streaming model limitations](#streaming-model-limitations)
 
-##### Streaming Model Limitations
+### Streaming Model Limitations
 
 Derived tables use an **incremental/streaming model** - they process new blocks as they arrive. This requires all operations to be incrementally updatable.
 
@@ -174,20 +174,20 @@ tables: {
 **Workaround for Unsupported Operations:**
    - Perform these operations at **query-time** instead of in derived tables. Raw tables support all SQL operations when queried, including `GROUP BY`, `DISTINCT`, `ORDER BY`, and `LIMIT`.
 
-## Querying Data
+# Querying Data
 
-### TypeScript/JavaScript API
+## TypeScript/JavaScript API
 
 The frontend uses `@edgeandnode/amp` - a type-safe library built on Apache Arrow Flight.
 
-### CLI Queries
+## CLI Queries
 
 ```bash
 # Query incremented events
 pnpm amp query 'SELECT * FROM "_/counter@dev".incremented LIMIT 10'
 ```
 
-### Dataset Tags (@dev vs @latest)
+## Dataset Tags (@dev vs @latest)
 Amp uses version tags to reference Datasets:
 
 - `@dev` - Development datasets (local, unpublished)
@@ -203,9 +203,9 @@ pnpm amp query 'SELECT * FROM "_/counter".incremented'
 pnpm amp query 'SELECT * FROM "_/counter@dev".incremented'
 ```
 
-## Local Development Workflows
+# Local Development Workflows
 
-### Querying Data
+## Querying Data
 
 Once your infrastructure is running (`just up` and `just dev`), you can query your dataset:
 
@@ -224,7 +224,7 @@ pnpm amp query 'SELECT block_num, count FROM "_/counter@dev".incremented WHERE c
 just studio
 ```
 
-### Creating a Derived Dataset
+## Creating a Derived Dataset
 
 Derived tables let you pre-transform data for faster queries instead of doing transformations at query-time. 
 
@@ -271,9 +271,9 @@ pnpm amp query 'SELECT * FROM "_/simple_filter@dev".simple_filter LIMIT 10'
 Explore published datasets in the [Amp Dataset Registry](https://playground.amp.thegraph.com/) and discover novel ways to transform your data.
 
 
-## Advanced Features
+# Advanced Features
 
-### Built-in SQL Functions and UDFs
+## Built-in SQL Functions and UDFs
 
 Amp provides specialized SQL functions for blockchain data operations:
 
@@ -293,9 +293,9 @@ Amp provides specialized SQL functions for blockchain data operations:
 
 For complete documentation and examples, see [docs/udfs.md](docs/udfs.md).
 
-## Troubleshooting
+# Troubleshooting
 
-### Iterating Quickly
+## Iterating Quickly
 
 ```bash
 # Clean slate (clears cached data)
@@ -304,7 +304,7 @@ just up
 ```
 
 
-### Testing Derived Tables
+## Testing Derived Tables
 
 **Validate SQL before deploying:**
 
@@ -313,7 +313,7 @@ just up
 pnpm amp build -o /tmp/test-manifest.json
 ```
 
-### "Unknown dataset reference '_/counter@latest'"
+## "Unknown dataset reference '_/counter@latest'"
 
 **Cause:** Development datasets use `@dev`, not `@latest`.
 
@@ -326,13 +326,13 @@ pnpm amp query 'SELECT * FROM "_/counter".incremented'
 pnpm amp query 'SELECT * FROM "_/counter@dev".incremented'
 ```
 
-### No Data in Tables
+## No Data in Tables
 
 **Cause:** No transactions generated yet.
 
 **Fix:** Interact with the frontend (http://localhost:5173) to increment/decrement the counter.
 
-### Dataset Not Deploying
+## Dataset Not Deploying
 
 **Symptoms:** Queries fail, no data directories created.
 
@@ -354,7 +354,7 @@ pnpm ampctl dataset deploy _/counter@dev
 - Services not fully started (wait for `just up` to complete)
 - Query returns no data - interact with Counter from the frontend to generate event data
 
-### Config Changes Not Applying
+## Config Changes Not Applying
 
 **Cause:** Services need full restart to re-register dataset.
 
@@ -364,7 +364,7 @@ just down
 just up
 ```
 
-### Build Errors
+## Build Errors
 
 **"non-incremental operation: Limit":**
 - Remove `LIMIT`, `ORDER BY`, `DISTINCT` from derived table SQL.
@@ -372,9 +372,9 @@ just up
 **"invalid value 'dev' for '--tag'":**
 - Don't use `-t dev` flag. Use `@dev` in dataset reference only.
 
-## Command Reference
+# Command Reference
 
-### Basic Operations
+## Basic Operations
 
 - `just install` - Install all dependencies (npm + forge)
 - `just up` - Start infrastructure, deploy contracts, register datasets
@@ -382,7 +382,7 @@ just up
 - `just down` - Stop all services, clean volumes
 - `just studio` - Open Amp Studio for interactive queries
 
-### Advanced Commands
+## Advanced Commands
 
 - `just logs [service]` - Tail service logs
 - `just stop [service]` - Stop specific service
@@ -390,19 +390,19 @@ just up
 - `pnpm ampctl dataset deploy _/counter@dev` - Manually deploy dataset
 - `pnpm amp query "<sql>"` - Run ad-hoc query
 
-### Services Started by `just up`
+## Services Started by `just up`
 
 - **PostgreSQL** (port 5432) - Database backend
 - **Anvil** (port 8545) - Local Ethereum node
 - **Amp** (ports 1602, 1603, 1610) - Data engineering layer
 - **Adminer** (port 7402) - Database explorer UI
 
-### What `just dev` Runs
+## What `just dev` Runs
 
 1. **Frontend** (`pnpm dev`) - Vite dev server on port 5173
 2. **Amp Dev Server** (`pnpm amp dev`) - Watches config changes, proxies queries
 
-## Further Reading
+# Further Reading
 
 - **[docs/config.md](docs/config.md)** - Complete Amp configuration reference (object stores, providers, environment variables)
 - **[docs/modes.md](docs/modes.md)** - Production deployment patterns (single-node vs distributed, scaling strategies)
