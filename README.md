@@ -39,7 +39,7 @@ Roadmap includes all major chains.
 
 - **Node.js** (v22+) with **Pnpm** (v10+)
 - **Docker** for running services
-- **Foundry** for smart contract development (`curl -L https://foundry.paradigm.xyz | bash`)
+- **Foundry** for smart contract development (`curl -L https://foundry.paradigm.xyz | bash && foundryup`)
 - **Just** as task runner (`cargo install just`)
 - **Amp** (`curl --proto '=https' --tlsv1.2 -sSf https://ampup.sh/install | sh`)
 
@@ -66,7 +66,7 @@ just dev
 
 Open http://localhost:5173 in your browser. Interact with the counter to generate transactions.
 
-## Test Processes With a Query
+## Test With a Query
 
 ```bash
 # In a new terminal, query your dataset
@@ -97,15 +97,13 @@ amp-demo/
 
 Datasets are a collection of tables that represents a unit of ownership, publishing and versioning. Datasets are identified by a namespace, name, and version/revision, and define how data is extracted, transformed, and materialized into Parquet files for querying.
 
-Read more about Datasets in the [docs/glossary.md](docs/glossary.md).
+Read more about datasets in the [docs/glossary.md](docs/glossary.md).
 
-#### Datasets Generate Queryable Tables 
+Explore published datasets in the [Amp Dataset Registry](https://playground.amp.thegraph.com/).
+
+#### Generating Tables 
 
 `amp.config.ts` is responsible for defining datasets as well as the tables generated from these datasets. 
-
-By passing in our abis to `eventTables(abi)`, tables are automatically generated and filled with decoded raw blockchain data. 
-
-#### Event Tables vs Derived Tables
 
 There are two types of tables, raw tables and derived tables.
 
@@ -172,11 +170,24 @@ tables: {
   },
 }
 ```
+
 **Workaround for Unsupported Operations:**
    - Perform these operations at **query-time** instead of in derived tables. Raw tables support all SQL operations when queried, including `GROUP BY`, `DISTINCT`, `ORDER BY`, and `LIMIT`.
 
-#### Dataset Tags (@dev vs @latest)
+## Querying Data
 
+### TypeScript/JavaScript API
+
+The frontend uses `@edgeandnode/amp` - a type-safe library built on Apache Arrow Flight.
+
+### CLI Queries
+
+```bash
+# Query incremented events
+pnpm amp query 'SELECT * FROM "_/counter@dev".incremented LIMIT 10'
+```
+
+### Dataset Tags (@dev vs @latest)
 Amp uses version tags to reference Datasets:
 
 - `@dev` - Development datasets (local, unpublished)
@@ -192,70 +203,72 @@ pnpm amp query 'SELECT * FROM "_/counter".incremented'
 pnpm amp query 'SELECT * FROM "_/counter@dev".incremented'
 ```
 
-## Querying Data
+## Local Development Workflows
 
-### TypeScript/JavaScript API
+### Querying Data
 
-The frontend uses `@edgeandnode/amp` - a type-safe library built on Apache Arrow Flight.
-
-### CLI Queries
+Once your infrastructure is running (`just up` and `just dev`), you can query your dataset:
 
 ```bash
-# Query incremented events
+# Query event tables
 pnpm amp query 'SELECT * FROM "_/counter@dev".incremented LIMIT 10'
+pnpm amp query 'SELECT * FROM "_/counter@dev".decremented LIMIT 10'
 
+# Query with filtering and ordering
+pnpm amp query 'SELECT block_num, count FROM "_/counter@dev".incremented WHERE count > 5 ORDER BY block_num DESC'
 ```
 
-
-## Development Workflow
-
-### Making Changes to amp.config.ts
-
-1. Edit `amp.config.ts` (or copy from `amp.config.extended-example.ts`)
-2. Restart services to re-register and deploy:
-   ```bash
-   just down
-   just up
-   ```
-3. The dev server will automatically pick up changes
-
-### Testing Derived Tables
-
-Before deploying, validate your SQL:
-
+**Interactive querying:**
 ```bash
-# Build manifest to check for errors
-pnpm amp build -o /tmp/test-manifest.json
+# Open Amp Studio for a web-based query interface
+just studio
 ```
 
-Common errors:
-- `UnqualifiedTable` - Forgot to qualify table name (use `anvil.blocks`, not `blocks`)
-- `non-incremental operation: Limit` - Used unsupported operation
-- `non-incremental operation: Aggregate` - Used DISTINCT/GROUP BY in complex context
+### Creating a Derived Dataset
 
-### Iterating Quickly
+Derived tables let you pre-transform data for faster queries instead of doing transformations at query-time. 
 
+**1. Start with the extended example:**
 ```bash
-# Clean slate (clears cached data)
+# Copy the example config with a derived table
+cp amp.config.extended-example.ts amp.config.ts
+```
+
+**2. Understand the pattern:**
+```typescript
+tables: {
+  ...baseTables,  // Spread existing event tables
+  simple_filter: {  // Add your derived table
+    sql: `
+      SELECT block_num, gas_used
+      FROM anvil.blocks
+      WHERE gas_used > 0
+    `,
+  },
+}
+```
+
+**3. Deploy your changes:**
+```bash
 just down
 just up
 ```
 
-### Using amp.config.extended-example.ts
-
-The extended example shows a working derived table:
-
+**4. Test your derived table:**
 ```bash
-# Copy extended example
-cp amp.config.extended-example.ts amp.config.ts
-
-# Restart to apply
-just down && just up
+# Query the new derived table
+pnpm amp query 'SELECT * FROM "_/simple_filter@dev".simple_filter LIMIT 10'
 ```
 
-new naming
+**5. Use Amp Studio to prototype queries:**
+1. Run `just studio` to open the web interface
+2. Test your SQL against existing dependency tables (e.g., `anvil.blocks`, `anvil.logs`)
+3. Once working, add the SQL to your `amp.config.ts` as a derived table
+4. Remember: Studio supports all SQL operations, but derived tables have [streaming limitations](#streaming-model-limitations)
 
-This adds a `simple_filter` table querying the `anvil` dependency. Modify the SQL to experiment with derived tables.
+
+**6. Explore other derived datasets**
+Explore published datasets in the [Amp Dataset Registry](https://playground.amp.thegraph.com/) and discover novel ways to transform your data.
 
 
 ## Advanced Features
@@ -281,6 +294,24 @@ Amp provides specialized SQL functions for blockchain data operations:
 For complete documentation and examples, see [docs/udfs.md](docs/udfs.md).
 
 ## Troubleshooting
+
+### Iterating Quickly
+
+```bash
+# Clean slate (clears cached data)
+just down
+just up
+```
+
+
+### Testing Derived Tables
+
+**Validate SQL before deploying:**
+
+```bash
+# Build manifest to check for errors
+pnpm amp build -o /tmp/test-manifest.json
+```
 
 ### "Unknown dataset reference '_/counter@latest'"
 
@@ -321,6 +352,7 @@ pnpm ampctl dataset deploy _/counter@dev
 - SQL errors in derived tables (check build output)
 - Streaming violations (see [Streaming Model Limitations](#streaming-model-limitations))
 - Services not fully started (wait for `just up` to complete)
+- Query returns no data - interact with Counter from the frontend to generate event data
 
 ### Config Changes Not Applying
 
