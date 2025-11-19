@@ -1,4 +1,4 @@
-# Amp - Template for ETHGlobal Argentina
+# Amp - Template for ETHGlobal Buenos Aires
 
 Template for building an Amp Dataset and ingesting the Dataset data in an application. Demos simple Amp config usage and consumption from a local and onchain development.
 
@@ -13,6 +13,19 @@ For more detailed documentation on Amp, see the [Amp Docs](docs/README.md).
  - Base Sepolia. 
 
 Roadmap includes all major chains.  
+
+## The Graph Amp Prize Info
+
+**Rewarding the most compelling end-to-end product built on Amp datasets.**
+Example Use Cases:
+- Cross-chain portfolio dashboard that aggregates wallet positions and liquidity using Amp token datasets.
+- Risk analytics or MEV monitor that visualizes transaction patterns or protocol surface exposure.
+- NFT trait liquidity explorer that ranks collections by floor depth and trading velocity using Amp NFT datasets.
+
+**Qualification Requirements**
+Builders should demonstrate how Amp datasets can power real-world insights, analytics, alerts, agent workflows, risk dashboards, or user experiences across DeFi, NFTs, RWAs, or AI.
+
+Learn about other prize tracks such as building with Subgraphs, Substreams, and Token API [here](https://ethglobal.com/events/buenosaires/prizes/the-graph)
 
 ## Table of Contents
 
