@@ -12,8 +12,8 @@ importers:
         specifier: ^2.1.1
         version: 2.1.1(@bufbuild/protobuf@2.10.1)(@connectrpc/connect@2.1.0(@bufbuild/protobuf@2.10.1))
       '@edgeandnode/amp':
-        specifier: ^0.0.39
-        version: 0.0.39(91910f52f0735857d71ff633b234c05d)
+        specifier: ^0.0.40
+        version: 0.0.40(91910f52f0735857d71ff633b234c05d)
       '@tailwindcss/vite':
         specifier: ^4.1.17
         version: 4.1.17(vite@7.2.2(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(yaml@2.8.1))
@@ -214,8 +214,8 @@ packages:
     peerDependencies:
       '@noble/ciphers': ^1.0.0
 
-  '@edgeandnode/amp@0.0.39':
-    resolution: {integrity: sha512-cXGuEpsN/LqsDgbmM86aohaqGgwf47h1OJeRKYKK85psEaGEvu25U1PCoMBQOC1XL4noHXTUTidj7IPwM40MRQ==}
+  '@edgeandnode/amp@0.0.40':
+    resolution: {integrity: sha512-BmnoZR7eEGVTgz77bsYmsgTePshK7tekQXPqkxda8DpFzCUY6UEmmf2hMPyA4jm+efMhNkpq48UJSNhDB1pMFQ==}
     hasBin: true
     peerDependencies:
       '@bufbuild/protobuf': 2.6.3
@@ -3410,7 +3410,7 @@ snapshots:
     dependencies:
       '@noble/ciphers': 1.3.0
 
-  '@edgeandnode/amp@0.0.39(91910f52f0735857d71ff633b234c05d)':
+  '@edgeandnode/amp@0.0.40(91910f52f0735857d71ff633b234c05d)':
     dependencies:
       '@bufbuild/protobuf': 2.10.1
       '@connectrpc/connect': 2.1.0(@bufbuild/protobuf@2.10.1)
