@@ -215,11 +215,11 @@ On hosted instance (https://playground.amp.thegraph.com/)
 
 Roadmap includes all major chains.
 
-## Onchain Development
+## Hosted Environment Development
 
-Redirect Amp from ingesting local data to onchain data by renaming `.env.example` to `.env` and uncommenting your target network + dataset. Amp will now consume published blockchain datasets maintained by Edge & Node. 
+Amp easily transitions from local development to developing on datasets located in a hosted environment.
 
-Build with published datasets - **[Amp Dataset Registry](https://playground.amp.thegraph.com/)** 
+Follow this **[guide](docs/hosted-env.md)** to transition Amp from Anvil datasets to published datasets hosted by Edge & Node.
 
 ## Interactive Development
 
@@ -236,6 +236,7 @@ pnpm amp query 'SELECT * FROM "_/counter@dev".incremented LIMIT 10'
 
 ## Next Steps
 
+- **[docs/hosted-env.md](docs/hosted-env.md)** - Move from ingesting Anvil datasets to datasets hosted by Edge & Node
 - **[docs/streaming.md](docs/streaming.md)** - Complete guide to streaming SQL limitations and patterns
 - **[docs/troubleshooting.md](docs/troubleshooting.md)** - Troubleshooting guide and detailed command reference
 - **[docs/config.md](docs/config.md)** - Advanced configuration (object stores, providers, environment variables)
