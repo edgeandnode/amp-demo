@@ -152,14 +152,9 @@ export default defineDataset(() => {
 });
 ```
 
-Deploy your changes:
+Amp automatically detects changes to `amp.config.ts` and generates your new `active_blocks` table.
 
-```bash
-just down
-just up
-```
-
-Query your new table:
+Query the new table:
 
 ```bash
 pnpm amp query 'SELECT * FROM "_/counter@dev".active_blocks LIMIT 10'
@@ -220,6 +215,12 @@ On hosted instance (https://playground.amp.thegraph.com/)
 
 Roadmap includes all major chains.
 
+## Onchain Development
+
+Redirect Amp from ingesting local data to onchain data by renaming `.env.example` to `.env` and uncommenting your target network + dataset. Amp will now consume published blockchain datasets maintained by Edge & Node. 
+
+Build with published datasets - **[Amp Dataset Registry](https://playground.amp.thegraph.com/)** 
+
 ## Interactive Development
 
 ```bash
@@ -241,8 +242,6 @@ pnpm amp query 'SELECT * FROM "_/counter@dev".incremented LIMIT 10'
 - **[docs/modes.md](docs/modes.md)** - Production deployment patterns
 - **[docs/glossary.md](docs/glossary.md)** - Terminology and architecture concepts
 - **[docs/udfs.md](docs/udfs.md)** - Built-in SQL functions for blockchain data
-- **[PUBLISH.md](./PUBLISH.md)** - Publishing datasets to the network
-- **[Amp Dataset Registry](https://playground.amp.thegraph.com/)** - Explore published datasets
 
 ## Common Questions
 
@@ -263,7 +262,6 @@ Local datasets use the `@dev` tag. Published datasets use version numbers like `
 ```
 amp-demo/
 ├── amp.config.ts                    # Dataset configuration (your SQL tables)
-├── amp.config.extended-example.ts   # Extended example with more patterns
 ├── contracts/src/Counter.sol        # Smart contract with events
 ├── app/                             # React frontend
 │   └── src/components/              # Components that query Amp datasets
