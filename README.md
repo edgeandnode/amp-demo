@@ -2,19 +2,20 @@
 
 Template for building an Amp dataset and ingesting the dataset data in an application. Demos simple Amp config usage and consumption from a local and onchain development.
 
-For more detailed documentation on Amp, see the [Amp Docs](docs/README.md). 
+For more detailed documentation on Amp, see the [Amp Docs](docs/README.md).
 
 ## Current Supported Chains
 
- - Foundry Anvil (local development)
- - Ethereum mainnet 
- - Arbitrum mainnet
- - Base mainnet
- - Base Sepolia. 
+- Foundry Anvil (local development)
+- Ethereum mainnet
+- Arbitrum mainnet
+- Base mainnet
+- Base Sepolia.
 
-Roadmap includes all major chains.  
+Roadmap includes all major chains.
 
 ## The Graph Amp Prize Info
+
 **The Best Use of Amp Datasets**
 🥇 1st place - $3,000
 🥈 2nd place - $2,000
@@ -22,8 +23,8 @@ Roadmap includes all major chains.
 
 **Rewarding the most compelling end-to-end product built on Amp datasets.**
 
-
 Example Use Cases:
+
 - Cross-chain portfolio dashboard that aggregates wallet positions and liquidity using Amp token datasets.
 - Risk analytics or MEV monitor that visualizes transaction patterns or protocol surface exposure.
 - NFT trait liquidity explorer that ranks collections by floor depth and trading velocity using Amp NFT datasets.
@@ -52,6 +53,7 @@ Learn about other prize tracks such as building with Subgraphs, Substreams, Toke
 - [Troubleshooting](#troubleshooting)
 - [Command Reference](#command-reference)
 - [Further Reading](#further-reading)
+- [Ready to publish](./PUBLISH.md)
 
 # Prerequisites
 
@@ -128,29 +130,32 @@ Datasets are referenced using the format `"namespace/name@version"`.
 - When querying, the full reference must be quoted due to the forward slash: `"_/counter@dev"`
 
 Examples:
+
 - `"_/counter@dev"` - Local development dataset named "counter"
 - `"_/anvil@0.0.1"` - Published Anvil blockchain data dependency
 - `"my-org/eth-mainnet@latest"` - Organization's published Ethereum dataset
 
-## Generating Tables 
+## Generating Tables
 
-`amp.config.ts` is responsible for defining datasets as well as the tables generated from these datasets. 
+`amp.config.ts` is responsible for defining datasets as well as the tables generated from these datasets.
 
 There are two types of tables, raw tables and derived tables.
 
 **Raw Tables** (from `eventTables(abi)`):
+
 - Purpose: Store decoded blockchain event data that maps 1:1 with on-chain events. Best for simple queries or when you need flexibility to transform data at query-time. Query latency scales with transformation complexity.
 - Automatically generated from smart contract ABIs.
 - Maps directly to blockchain events (e.g. in this template demo app, our raw tables map to `Incremented`, `Decremented`)
 - Available immediately after deployment
 
 **Derived Tables** (optional custom SQL in `amp.config.ts`):
-- Purpose: Store pre-transformed blockchain data for complex queries. Use when you need subsecond query latency on complex joins or computations. 
+
+- Purpose: Store pre-transformed blockchain data for complex queries. Use when you need subsecond query latency on complex joins or computations.
 - Example of a simple custom SQL statement generating a derived table in `amp.config.extended-example.ts`.
 - Current caveats:
-   - Can only query tables from **dependencies** (e.g., `anvil.blocks`, `anvil.logs`)
-   - Cannot reference other tables in the same dataset (no self-referencing)
-   - Must follow [streaming model limitations](#streaming-model-limitations)
+  - Can only query tables from **dependencies** (e.g., `anvil.blocks`, `anvil.logs`)
+  - Cannot reference other tables in the same dataset (no self-referencing)
+  - Must follow [streaming model limitations](#streaming-model-limitations)
 
 ### Streaming Model Limitations
 
@@ -158,6 +163,7 @@ Derived tables use an **incremental/streaming model** - they process new blocks 
 
 **Supported Streaming Operations:**
 These SQL operations can be used to generate derived tables for querying.
+
 - `WHERE` - Filter rows
 - `JOIN` - Join with dependency tables
 - `UNION ALL` - Combine queries
@@ -175,6 +181,7 @@ Note: These operations CAN be used when querying raw or derived tables. They jus
 - Window functions
 
 **Example - Valid Derived Table:**
+
 ```typescript
 // Valid: Queries dependency (anvil.blocks)
 tables: {
@@ -189,6 +196,7 @@ tables: {
 ```
 
 **Example - Invalid Derived Table:**
+
 ```typescript
 // Invalid: Uses GROUP BY aggregation (not supported in streaming model)
 tables: {
@@ -203,7 +211,8 @@ tables: {
 ```
 
 **Workaround for Unsupported Operations:**
-   - Perform these operations at **query-time** instead of in derived tables. Raw tables support all SQL operations when queried, including `GROUP BY`, `DISTINCT`, `ORDER BY`, and `LIMIT`.
+
+- Perform these operations at **query-time** instead of in derived tables. Raw tables support all SQL operations when queried, including `GROUP BY`, `DISTINCT`, `ORDER BY`, and `LIMIT`.
 
 # Querying Data
 
@@ -219,6 +228,7 @@ pnpm amp query 'SELECT * FROM "_/counter@dev".incremented LIMIT 10'
 ```
 
 ## Dataset Tags (@dev vs @latest)
+
 Amp uses version tags to reference datasets:
 
 - `@dev` - Development datasets (local, unpublished)
@@ -226,6 +236,7 @@ Amp uses version tags to reference datasets:
 - `@latest` - Latest published version
 
 Development datasets must use `@dev`:
+
 ```bash
 # Incorrect - defaults to @latest
 pnpm amp query 'SELECT * FROM "_/counter".incremented'
@@ -250,6 +261,7 @@ pnpm amp query 'SELECT block_num, count FROM "_/counter@dev".incremented WHERE c
 ```
 
 **Interactive querying:**
+
 ```bash
 # Open Amp Studio for a web-based query interface
 just studio
@@ -262,12 +274,12 @@ Derived tables let you pre-transform data for faster queries instead of doing tr
 **1. Edit your amp.config.ts to add a derived table:**
 
 ```typescript
-import { defineDataset, eventTables } from "@edgeandnode/amp"
+import { defineDataset, eventTables } from "@edgeandnode/amp";
 // @ts-ignore
-import { abi } from "./app/src/lib/abi.ts"
+import { abi } from "./app/src/lib/abi.ts";
 
 export default defineDataset(() => {
-  const baseTables = eventTables(abi)
+  const baseTables = eventTables(abi);
 
   return {
     name: "counter",
@@ -277,8 +289,9 @@ export default defineDataset(() => {
       anvil: "_/anvil@0.0.1",
     },
     tables: {
-      ...baseTables,  // Spreads incremented and decremented raw tables
-      simple_filter: {  // Add your derived table
+      ...baseTables, // Spreads incremented and decremented raw tables
+      simple_filter: {
+        // Add your derived table
         sql: `
           SELECT
             block_num,
@@ -292,17 +305,19 @@ export default defineDataset(() => {
         `,
       },
     },
-  }
-})
+  };
+});
 ```
 
 **2. Deploy your changes:**
+
 ```bash
 just down
 just up
 ```
 
 **3. Test your derived table:**
+
 ```bash
 # Query the new derived table
 pnpm amp query 'SELECT * FROM "_/counter@dev".simple_filter LIMIT 10'
@@ -323,7 +338,6 @@ Before adding derived tables to your config, prototype your SQL interactively:
 
 Explore published datasets in the [Amp Dataset Registry](https://playground.amp.thegraph.com/) to discover novel ways to transform your data.
 
-
 # Advanced Features
 
 ## Built-in SQL Functions and UDFs
@@ -331,11 +345,13 @@ Explore published datasets in the [Amp Dataset Registry](https://playground.amp.
 Amp provides specialized SQL functions for blockchain data operations:
 
 **When you need them:**
+
 - Working directly with raw logs from dependencies (e.g., `anvil.logs`)
 - Custom encoding/decoding beyond what `eventTables(abi)` provides
 - Making read-only contract calls via `eth_call`
 
 **Available functions:**
+
 - `evm_decode_log` - Decode raw event logs
 - `evm_topic` - Get topic hash from event signature
 - `evm_decode_params` / `evm_encode_params` - Decode/encode function parameters
@@ -365,11 +381,12 @@ just up
 pnpm amp build -o /tmp/test-manifest.json
 ```
 
-## "Unknown dataset reference '_/counter@latest'"
+## "Unknown dataset reference '\_/counter@latest'"
 
 **Cause:** Development datasets use `@dev`, not `@latest`.
 
 **Fix:**
+
 ```bash
 # Incorrect
 pnpm amp query 'SELECT * FROM "_/counter".incremented'
@@ -389,6 +406,7 @@ pnpm amp query 'SELECT * FROM "_/counter@dev".incremented'
 **Symptoms:** Queries fail, no data directories created.
 
 **Debug steps:**
+
 ```bash
 # Check logs
 docker compose logs amp | grep counter
@@ -401,6 +419,7 @@ pnpm ampctl dataset deploy _/counter@dev
 ```
 
 **Common causes:**
+
 - SQL errors in derived tables (check build output)
 - Streaming violations (see [Streaming Model Limitations](#streaming-model-limitations))
 - Services not fully started (wait for `just up` to complete)
@@ -411,6 +430,7 @@ pnpm ampctl dataset deploy _/counter@dev
 **Cause:** Services need full restart to re-register dataset.
 
 **Fix:**
+
 ```bash
 just down
 just up
@@ -419,9 +439,11 @@ just up
 ## Build Errors
 
 **"non-incremental operation: Limit":**
+
 - Remove `LIMIT`, `ORDER BY`, `DISTINCT` from derived table SQL.
 
 **"invalid value 'dev' for '--tag'":**
+
 - Don't use `-t dev` flag. Use `@dev` in dataset reference only.
 
 # Command Reference
