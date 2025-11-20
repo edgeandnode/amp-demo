@@ -5,6 +5,7 @@ import { defineConfig } from "vite"
 // https://vite.dev/config/
 export default defineConfig({
   root: "app",
+  envDir: "..",
   plugins: [react(), tailwindcss(),],
   server: {
     proxy: {

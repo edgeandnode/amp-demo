@@ -18,13 +18,13 @@ const IncrementQueryLive = Effect.gen(function* () {
   /**
    * This query hits your deployed dataset from running `pnpm amp dev`.
    * **Notice** the FROM clause structure:
-   * - `_` -> namespace. `_` is the default. if you set the namespace in the amp.config.ts, then use that namespace here
+   * - `amp_demo` -> namespace. `_` is the default. if you set the namespace in the amp.config.ts, then use that namespace here
    * - `counter` -> name; set in the amp.config.ts
    * - `dev` -> revision. `dev` is the default. if when you run the register and deploy commands, if you set the tag, (0.0.1 for example); use that value
    * - `incremented` -> the table named derived from your contract abis
-   * => the end result: "_/conter@dev".incremented queries the incremented table on your dataset
+   * => the end result: "amp_demo/conter@dev".incremented queries the incremented table on your dataset
    */
-  const query = `SELECT block_num, timestamp, count FROM "_/counter@dev".incremented ORDER BY block_num DESC`;
+  const query = `SELECT block_num, timestamp, count FROM "amp_demo/counter@dev".incremented ORDER BY block_num DESC`;
   const queryTemplate: TemplateStringsArray = Object.assign([query], {
     raw: [query],
   });

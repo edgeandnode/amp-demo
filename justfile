@@ -5,10 +5,19 @@ docker := if `command -v podman >/dev/null 2>&1; echo $?` == "0" { "podman" } el
 default:
     @just --list
 
+# Copy .env.example to .env if .env doesn't exist
+copy_env:
+    #!/usr/bin/env bash
+    if [ ! -f .env ]; then
+        cp .env.example .env
+        echo "Created .env from .env.example"
+    fi
+
 # Install dependencies
 install:
     pnpm install
     forge build
+    just copy_env
 
 # Install amp
 ampup:

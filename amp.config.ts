@@ -3,16 +3,17 @@ import { defineDataset, eventTables } from "@edgeandnode/amp"
 import { abi } from "./app/src/lib/abi.ts"
 
 export default defineDataset(() => ({
+  namespace: "amp_demo", // Replace this value with a logical namepsace for you/your organization before publishing
   name: "counter",
-  network: "anvil",
+  network: process.env.VITE_AMP_NETWORK || "anvil",
   description: "Basic Amp dataset demo that builds tables from foundry events ontop of anvil",
   readme: `# Amp Demo
 
 Basic Amp dataset demo that builds tables from foundry events ontop of anvil
 `,
-  keywords: ["Anvil", "Logs", "Transactions"],
+  keywords: ["Logs", "Transactions"],
   dependencies: {
-    anvil: "_/anvil@0.0.1",
+    rpc: process.env.VITE_AMP_RPC_DATASET || "_/anvil@0.0.1",
   },
-  tables: eventTables(abi),
+  tables: eventTables(abi, "rpc"),
 }))

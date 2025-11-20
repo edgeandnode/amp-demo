@@ -7,7 +7,7 @@ import { abi } from "../lib/abi.ts";
 import { wagmiConfig } from "../lib/config.ts";
 import { address as contractAddress } from "../lib/viem.ts";
 import { DecrementTable } from "./DecrementTable.tsx";
-import { IncrementTable } from "./IncremenetTable.tsx";
+import { IncrementTable } from "./IncrementTable.tsx";
 import { LogsTable } from "./LogsTable.tsx";
 import { TransactionsTable } from "./TransactionsTable.tsx";
 

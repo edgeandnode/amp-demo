@@ -8,12 +8,15 @@ importers:
 
   .:
     dependencies:
+      '@connectrpc/connect':
+        specifier: ^2.1.1
+        version: 2.1.1(@bufbuild/protobuf@2.10.1)
       '@connectrpc/connect-web':
         specifier: ^2.1.1
-        version: 2.1.1(@bufbuild/protobuf@2.10.1)(@connectrpc/connect@2.1.0(@bufbuild/protobuf@2.10.1))
+        version: 2.1.1(@bufbuild/protobuf@2.10.1)(@connectrpc/connect@2.1.1(@bufbuild/protobuf@2.10.1))
       '@edgeandnode/amp':
-        specifier: ^0.0.41
-        version: 0.0.41(91910f52f0735857d71ff633b234c05d)
+        specifier: ^0.0.42
+        version: 0.0.42(976a37d8234c97be22fb16f3a30ab3fe)
       '@tailwindcss/vite':
         specifier: ^4.1.17
         version: 4.1.17(vite@7.2.2(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(yaml@2.8.1))
@@ -26,6 +29,9 @@ importers:
       apache-arrow:
         specifier: ^21.1.0
         version: 21.1.0
+      dotenv:
+        specifier: ^17.2.3
+        version: 17.2.3
       effect:
         specifier: ^3.19.4
         version: 3.19.4
@@ -203,8 +209,8 @@ packages:
       '@bufbuild/protobuf': ^2.7.0
       '@connectrpc/connect': 2.1.1
 
-  '@connectrpc/connect@2.1.0':
-    resolution: {integrity: sha512-xhiwnYlJNHzmFsRw+iSPIwXR/xweTvTw8x5HiwWp10sbVtd4OpOXbRgE7V58xs1EC17fzusF1f5uOAy24OkBuA==}
+  '@connectrpc/connect@2.1.1':
+    resolution: {integrity: sha512-JzhkaTvM73m2K1URT6tv53k2RwngSmCXLZJgK580qNQOXRzZRR/BCMfZw3h+90JpnG6XksP5bYT+cz0rpUzUWQ==}
     peerDependencies:
       '@bufbuild/protobuf': ^2.7.0
 
@@ -214,8 +220,8 @@ packages:
     peerDependencies:
       '@noble/ciphers': ^1.0.0
 
-  '@edgeandnode/amp@0.0.41':
-    resolution: {integrity: sha512-ZS1MBhnDL6F+97PbuOK4UtIQXA1vex3HKllMzKuVIrt2h4EUK8g6darTi/hX+EDCGGRnv02nEHUG3KlDtd233A==}
+  '@edgeandnode/amp@0.0.42':
+    resolution: {integrity: sha512-AApPsy/iuKCjg1oarOc9TJf0mbgFv4fxTCsVePNeGEowbxtATltA+j8sfHvCGRQj1HIFAm9mlbJ0BbKbZ+MDTQ==}
     hasBin: true
     peerDependencies:
       '@bufbuild/protobuf': 2.6.3
@@ -1822,6 +1828,10 @@ packages:
   dijkstrajs@1.0.3:
     resolution: {integrity: sha512-qiSlmBq9+BCdCA/L46dw8Uy93mloxsPSbwnm5yrKn2vMPiy8KyAskTF6zuV/j5BMsmOGZDPs7KjU+mjb670kfA==}
 
+  dotenv@17.2.3:
+    resolution: {integrity: sha512-JVUnt+DUIzu87TABbhPmNfVdBDt18BLOWjMUFJMSi/Qqg7NTYtabbvSNJGOJ7afbRuv9D/lngizHtP7QyLQ+9w==}
+    engines: {node: '>=12'}
+
   dunder-proto@1.0.1:
     resolution: {integrity: sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A==}
     engines: {node: '>= 0.4'}
@@ -3392,17 +3402,17 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@connectrpc/connect-node@2.1.0(@bufbuild/protobuf@2.10.1)(@connectrpc/connect@2.1.0(@bufbuild/protobuf@2.10.1))':
+  '@connectrpc/connect-node@2.1.0(@bufbuild/protobuf@2.10.1)(@connectrpc/connect@2.1.1(@bufbuild/protobuf@2.10.1))':
     dependencies:
       '@bufbuild/protobuf': 2.10.1
-      '@connectrpc/connect': 2.1.0(@bufbuild/protobuf@2.10.1)
+      '@connectrpc/connect': 2.1.1(@bufbuild/protobuf@2.10.1)
 
-  '@connectrpc/connect-web@2.1.1(@bufbuild/protobuf@2.10.1)(@connectrpc/connect@2.1.0(@bufbuild/protobuf@2.10.1))':
+  '@connectrpc/connect-web@2.1.1(@bufbuild/protobuf@2.10.1)(@connectrpc/connect@2.1.1(@bufbuild/protobuf@2.10.1))':
     dependencies:
       '@bufbuild/protobuf': 2.10.1
-      '@connectrpc/connect': 2.1.0(@bufbuild/protobuf@2.10.1)
+      '@connectrpc/connect': 2.1.1(@bufbuild/protobuf@2.10.1)
 
-  '@connectrpc/connect@2.1.0(@bufbuild/protobuf@2.10.1)':
+  '@connectrpc/connect@2.1.1(@bufbuild/protobuf@2.10.1)':
     dependencies:
       '@bufbuild/protobuf': 2.10.1
 
@@ -3410,11 +3420,11 @@ snapshots:
     dependencies:
       '@noble/ciphers': 1.3.0
 
-  '@edgeandnode/amp@0.0.41(91910f52f0735857d71ff633b234c05d)':
+  '@edgeandnode/amp@0.0.42(976a37d8234c97be22fb16f3a30ab3fe)':
     dependencies:
       '@bufbuild/protobuf': 2.10.1
-      '@connectrpc/connect': 2.1.0(@bufbuild/protobuf@2.10.1)
-      '@connectrpc/connect-node': 2.1.0(@bufbuild/protobuf@2.10.1)(@connectrpc/connect@2.1.0(@bufbuild/protobuf@2.10.1))
+      '@connectrpc/connect': 2.1.1(@bufbuild/protobuf@2.10.1)
+      '@connectrpc/connect-node': 2.1.0(@bufbuild/protobuf@2.10.1)(@connectrpc/connect@2.1.1(@bufbuild/protobuf@2.10.1))
       '@effect/cli': 0.72.1(@effect/platform@0.93.2(effect@3.19.4))(@effect/printer-ansi@0.47.0(@effect/typeclass@0.38.0(effect@3.19.4))(effect@3.19.4))(@effect/printer@0.47.0(@effect/typeclass@0.38.0(effect@3.19.4))(effect@3.19.4))(effect@3.19.4)
       '@effect/cluster': 0.52.9(@effect/platform@0.93.2(effect@3.19.4))(@effect/rpc@0.72.1(@effect/platform@0.93.2(effect@3.19.4))(effect@3.19.4))(@effect/sql@0.48.0(@effect/experimental@0.57.1(@effect/platform@0.93.2(effect@3.19.4))(effect@3.19.4))(@effect/platform@0.93.2(effect@3.19.4))(effect@3.19.4))(@effect/workflow@0.12.5(@effect/experimental@0.57.1(@effect/platform@0.93.2(effect@3.19.4))(effect@3.19.4))(@effect/platform@0.93.2(effect@3.19.4))(@effect/rpc@0.72.1(@effect/platform@0.93.2(effect@3.19.4))(effect@3.19.4))(effect@3.19.4))(effect@3.19.4)
       '@effect/platform': 0.93.2(effect@3.19.4)
@@ -5853,6 +5863,8 @@ snapshots:
   detect-libc@2.1.2: {}
 
   dijkstrajs@1.0.3: {}
+
+  dotenv@17.2.3: {}
 
   dunder-proto@1.0.1:
     dependencies:

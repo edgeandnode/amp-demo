@@ -4,7 +4,7 @@ import { ArrowFlight } from "@edgeandnode/amp";
 import { Table } from "apache-arrow";
 import { Effect, Schema, Stream } from "effect";
 import { useState, useEffect } from "react";
-import { runtime } from "../lib/runtime.ts";
+import { runtime, RPC_SOURCE } from "../lib/runtime.ts";
 
 const TransactionSchema = Schema.Struct({
   block_num: Schema.BigInt,
@@ -19,7 +19,7 @@ type TransactionSchema = typeof TransactionSchema.Type;
 
 const TransactionsQueryLive = Effect.gen(function* () {
   const arrow = yield* ArrowFlight.ArrowFlight;
-  const query = `SELECT block_num, block_hash, timestamp, tx_hash, nonce, "to", "from" FROM anvil.transactions`;
+  const query = `SELECT block_num, block_hash, timestamp, tx_hash, nonce, "to", "from" FROM "${RPC_SOURCE}".transactions`;
   const queryTemplate: TemplateStringsArray = Object.assign([query], {
     raw: [query],
   });
