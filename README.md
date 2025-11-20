@@ -359,7 +359,7 @@ Ready to shift from local Anvil development to building with Ethereum mainnet, B
 
 ## Configuration
 
-Moving to onchain networks means switching from your local Anvil node to **published raw datasets**. These are maintained by The Graph and include all blocks, transactions, and logs for each supported network.
+Moving to onchain networks means switching from your local Anvil node to **published raw datasets**. These are maintained by Edge & Node and include all blocks, transactions, and logs for each supported network.
 
 **Key concept:** You don't need to run your own blockchain indexer or configure custom providers. Your dataset simply declares a dependency on a published raw dataset (e.g., `edgeandnode/ethereum_mainnet@0.0.1`), and Amp handles the rest.
 
