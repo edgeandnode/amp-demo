@@ -23,3 +23,7 @@ cache/
 /infra/amp/providers/*.toml
 /infra/amp/anvil.json
 !/infra/amp/providers/anvil.toml
+
+# env
+.env*
+!.env.example
