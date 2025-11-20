@@ -1,4 +1,3 @@
-
 # Hosted Environment Workflow
 
 Ready to move from local Anvil development? This section covers configuring your Amp instance to consume published datasets hosted by Edge & Node.
