@@ -100,7 +100,6 @@ pnpm amp query 'SELECT * FROM "_/counter@dev".incremented LIMIT 5'
 ```
 amp-demo/
 ├── amp.config.ts                    # Main dataset configuration
-├── amp.config.extended-example.ts   # Example with derived tables
 ├── contracts/src/Counter.sol        # Smart contract (Incremented/Decremented events)
 ├── app/                             # Frontend application
 │   └── src/components/              # Query usage examples
@@ -121,20 +120,6 @@ Read more about datasets in the [docs/glossary.md](docs/glossary.md).
 
 Explore published datasets in the [Amp Dataset Registry](https://playground.amp.thegraph.com/).
 
-### Dataset Namespaces
-
-Datasets are referenced using the format `"namespace/name@version"`.
-
-- The underscore namespace `_/` is the default namespace for local development
-- Organizations can use custom namespaces like `my-org/dataset-name@1.0.0`
-- When querying, the full reference must be quoted due to the forward slash: `"_/counter@dev"`
-
-Examples:
-
-- `"_/counter@dev"` - Local development dataset named "counter"
-- `"_/anvil@0.0.1"` - Published Anvil blockchain data dependency
-- `"my-org/eth-mainnet@latest"` - Organization's published Ethereum dataset
-
 ## Generating Tables
 
 `amp.config.ts` is responsible for defining datasets as well as the tables generated from these datasets.
@@ -151,7 +136,7 @@ There are two types of tables, raw tables and derived tables.
 **Derived Tables** (optional custom SQL in `amp.config.ts`):
 
 - Purpose: Store pre-transformed blockchain data for complex queries. Use when you need subsecond query latency on complex joins or computations.
-- Example of a simple custom SQL statement generating a derived table in `amp.config.extended-example.ts`.
+- See [Creating a Derived Dataset](#creating-a-derived-dataset) section below for a complete example.
 - Current caveats:
   - Can only query tables from **amp.config.ts dependencies** (e.g., `anvil.blocks`, `anvil.logs`)
   - Cannot reference other tables in the same dataset (no self-referencing)
@@ -271,6 +256,38 @@ just studio
 
 Derived tables let you pre-transform data for faster queries instead of doing transformations at query-time. This example adds a `simple_filter` derived table to your existing `counter` dataset.
 
+### Dataset Configuration Properties
+
+When configuring your dataset in `amp.config.ts`:
+
+**Required:**
+- `name` - Dataset name
+- `network` - Chain/network (e.g., `"anvil"`, `"ethereum-mainnet"`)
+- `dependencies` - Dataset dependencies (e.g., `{ rpc: "_/anvil@0.0.1" }`)
+- `tables` - Table definitions
+
+**Optional (recommended for publishing):**
+- `namespace` - Organization/user namespace (required when publishing)
+- `description`, `readme`, `keywords` - Discoverability in registry
+- `sources`, `repository`, `license` - Metadata
+- `private` - Visibility (default: `false`)
+- `functions` - Custom UDFs (experimental)
+
+#### Dataset Namespaces
+
+Datasets are referenced using the format `"namespace/name@version"`.
+
+- The underscore namespace `_/` is the default namespace for local development
+- Organizations can use custom namespaces like `my-org/dataset-name@1.0.0`
+- When querying, the full reference must be quoted due to the forward slash: `"_/counter@dev"`
+
+Examples:
+
+- `"_/counter@dev"` - Local development dataset named "counter"
+- `"_/anvil@0.0.1"` - Published Anvil blockchain data dependency
+- `"my-org/eth-mainnet@latest"` - Organization's published Ethereum dataset
+
+
 **1. Edit your amp.config.ts to add a derived table:**
 
 ```typescript
@@ -279,19 +296,17 @@ import { defineDataset, eventTables } from "@edgeandnode/amp";
 import { abi } from "./app/src/lib/abi.ts";
 
 export default defineDataset(() => {
-  const baseTables = eventTables(abi);
+  const baseTables = eventTables(abi, "rpc");
 
   return {
     name: "counter",
-    network: "anvil",
-    description: "Counter dataset with raw tables and a derived table",
+    network: process.env.VITE_AMP_NETWORK || "anvil",
     dependencies: {
-      anvil: "_/anvil@0.0.1",
+      rpc: process.env.VITE_AMP_RPC_DATASET || "_/anvil@0.0.1",
     },
     tables: {
-      ...baseTables, // Spreads incremented and decremented raw tables
+      ...baseTables,
       simple_filter: {
-        // Add your derived table
         sql: `
           SELECT
             block_num,
@@ -300,11 +315,13 @@ export default defineDataset(() => {
             gas_used,
             gas_limit,
             miner
-          FROM anvil.blocks
+          FROM rpc.blocks
           WHERE gas_used > 0
         `,
       },
     },
+    namespace: "amp_demo",
+    description: "Counter dataset with raw tables and a derived table",
   };
 });
 ```
@@ -314,6 +331,8 @@ export default defineDataset(() => {
 ```bash
 just down
 just up
+just dev
+just logs (optional)
 ```
 
 **3. Test your derived table:**
@@ -325,14 +344,12 @@ pnpm amp query 'SELECT * FROM "_/counter@dev".simple_filter LIMIT 10'
 
 **Prototyping with Amp Studio:**
 
-Before adding derived tables to your config, prototype your SQL interactively:
+Prototype your SQL interactively:
 
 1. Run `just studio` to open the web interface
-2. Test your SQL against dependency tables (e.g., `anvil.blocks`, `anvil.logs`)
+2. Test your SQL against dependency tables (e.g., `rpc.blocks`, `rpc.logs`)
 3. Once working, add the SQL to your `amp.config.ts` as shown above
 4. Remember: Studio supports all SQL operations, but derived tables have [streaming limitations](#streaming-model-limitations)
-
-> **Note:** See `amp.config.extended-example.ts` for a complete reference example with similar patterns.
 
 **Discover More Patterns:**
 
