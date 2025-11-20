@@ -8,9 +8,10 @@ Ready to publish? Follow these steps to publish your Amp Dataset, making it publ
 
      - `namespace` (REQUIRED) this is a logical namespace/organization for your datasets. Could be your 0x address, ens name, your organization, etc.
      - `network` (REQUIRED) What chain/network will your dataset consume data from
-     - `ethereum-mainnet`
-     - `arbitrum-one`
-     - `base-mainnet`
+
+       - `ethereum-mainnet`
+       - `arbitrum-one`
+       - `base-mainnet`
 
      - `description` (OPTIONAL, recommended) description on what your dataset is for, its use-case, the data it is materializing, etc. This is used for discoverability in the registry.
      - `keywords` (OPTIONAL, recommended) like keywords in your `package.json`, this is an array of key words that help to describe your dataset use-case. Things like `DeFi`, `NFT`, `Art`, etc. Similar to the description, this is used for discoverability in the registry.
