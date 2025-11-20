@@ -6,6 +6,7 @@
 !.prettierrc
 !.prettierignore
 !.github
+!.env.example
 
 node_modules/
 build/
