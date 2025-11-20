@@ -153,7 +153,7 @@ There are two types of tables, raw tables and derived tables.
 - Purpose: Store pre-transformed blockchain data for complex queries. Use when you need subsecond query latency on complex joins or computations.
 - Example of a simple custom SQL statement generating a derived table in `amp.config.extended-example.ts`.
 - Current caveats:
-  - Can only query tables from **dependencies** (e.g., `anvil.blocks`, `anvil.logs`)
+  - Can only query tables from **amp.config.ts dependencies** (e.g., `anvil.blocks`, `anvil.logs`)
   - Cannot reference other tables in the same dataset (no self-referencing)
   - Must follow [streaming model limitations](#streaming-model-limitations)
 
@@ -245,7 +245,7 @@ pnpm amp query 'SELECT * FROM "_/counter".incremented'
 pnpm amp query 'SELECT * FROM "_/counter@dev".incremented'
 ```
 
-# Local Development Workflows
+# Local Development Workflow
 
 ## Querying Data
 
@@ -358,7 +358,7 @@ Amp provides specialized SQL functions for blockchain data operations:
 - `evm_decode_type` / `evm_encode_type` - Decode/encode Solidity types
 - `${dataset}.eth_call` - Execute read-only contract calls
 
-> **Note:** `eventTables(abi)` already handles event decoding automatically. You typically only need these functions for advanced use cases.
+> **Note:** `eventTables(abi)` already handles event decoding automatically. You typically only need these functions for advanced use cases. Custom UDFs are supported via the `functions` field in `amp.config.ts` but are currently experimental.
 
 For complete documentation and examples, see [docs/udfs.md](docs/udfs.md).
 
