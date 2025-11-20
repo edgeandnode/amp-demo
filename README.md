@@ -205,7 +205,7 @@ All clients use the same SQL query language and connect to the same Amp server.
 ## Supported Chains
 
 Local
-- **Foundry Anvil** (local development)
+- **Anvil or Hardhat** (local development)
 
 On hosted instance (https://playground.amp.thegraph.com/)
 - **Ethereum** mainnet
@@ -219,7 +219,7 @@ Roadmap includes all major chains.
 
 Amp easily transitions from local development to developing on datasets located in a hosted environment.
 
-Follow this **[guide](docs/hosted-env.md)** to transition Amp from Anvil datasets to published datasets hosted by Edge & Node.
+Follow this **[guide](docs/hosted-env.md)** to transition Amp from local datasets to published datasets hosted by Edge & Node.
 
 ## Interactive Development
 
@@ -236,7 +236,7 @@ pnpm amp query 'SELECT * FROM "_/counter@dev".incremented LIMIT 10'
 
 ## Next Steps
 
-- **[docs/hosted-env.md](docs/hosted-env.md)** - Move from ingesting Anvil datasets to datasets hosted by Edge & Node
+- **[docs/hosted-env.md](docs/hosted-env.md)** - Move from querying local datasets to datasets hosted by Edge & Node
 - **[docs/streaming.md](docs/streaming.md)** - Complete guide to streaming SQL limitations and patterns
 - **[docs/troubleshooting.md](docs/troubleshooting.md)** - Troubleshooting guide and detailed command reference
 - **[docs/config.md](docs/config.md)** - Advanced configuration (object stores, providers, environment variables)

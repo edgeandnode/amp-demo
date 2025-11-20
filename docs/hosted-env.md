@@ -1,6 +1,16 @@
 # Hosted Environment Workflow
 
-Ready to move from local Anvil development? This section covers configuring your Amp instance to consume published datasets hosted by Edge & Node.
+Ready to move beyond local development? This guide covers how to work with Amp's hosted service maintained by Edge & Node.
+
+## What Is the Hosted Service?
+
+Edge & Node maintains published datasets that contain blocks, transactions, and logs indexed in real-time, queryable via SQL.
+
+**Why use it?**
+- **No infrastructure** - No blockchain nodes, no indexers, no database setup
+- **Instant queries** - Query and transform mainnet data immediately with SQL
+- **Production ready** - Build applications on reliable, hosted datasets
+- **Composable** - Combine multiple published datasets in your queries
 
 ## Supported Networks
 
@@ -9,23 +19,113 @@ Ready to move from local Anvil development? This section covers configuring your
 - **base-mainnet** - Base L2
 - **base-sepolia** - Base Sepolia testnet
 
-## Configuration
+Roadmap includes all major chains.
 
-**Key concept:** You don't need to run your own blockchain indexer or configure custom providers. Your dataset simply declares a dependency on a published raw dataset (e.g., `edgeandnode/ethereum_mainnet@0.0.1`), and Amp handles the rest.
+## Three Entry Points
 
-### Step 1: Update Your Environment
+1. **Query existing datasets** - Build on published datasets immediately
+2. **Transition from local to hosted** - Move your local development to hosted networks
+3. **Publish your dataset** - Share your dataset for others to use
 
-Rename `.env.example` to `.env`.
+---
 
-Then edit `.env`:
+# Query Existing Datasets
+
+Build applications on published blockchain data without local setup.
+
+
+## Step 1: Test 
+
+Run test queries at [playground.amp.thegraph.com](https://playground.amp.thegraph.com/) and determine if you are getting the data you need. 
+
+## Step 2: Generate Auth Token
 
 ```bash
-# Uncomment your target dataset and network, e.g.:
+pnpm amp auth token --duration "3 days"
+```
+
+Save this token—you'll use it for CLI queries and configure it in your application's environment variables.
+
+## Step 3: Query 
+
+### From Your CLI
+
+```bash
+pnpm amp query \
+  --flight-url https://gateway.amp.staging.thegraph.com \
+  --bearer-token YOUR_TOKEN_HERE \
+  'SELECT block_num, hash FROM "edgeandnode/ethereum_mainnet@0.0.1".blocks ORDER BY block_num DESC LIMIT 5'
+```
+
+**Filter for specific contracts:**
+
+```bash
+pnpm amp query \
+  --flight-url https://gateway.amp.staging.thegraph.com \
+  --bearer-token YOUR_TOKEN_HERE \
+  'SELECT block_num, tx_hash FROM "edgeandnode/ethereum_mainnet@0.0.1".logs WHERE address = 0xYOUR_CONTRACT_ADDRESS LIMIT 10'
+```
+
+### From Your Application
+
+Add the gateway URL and token to your environment:
+
+```bash
+VITE_AMP_QUERY_URL=https://gateway.amp.staging.thegraph.com
+VITE_AMP_QUERY_TOKEN=amp_your_token_here
+```
+
+Configure your Amp client to use these values. This template includes the auth pattern in `app/src/lib/runtime.ts`.
+
+```typescript
+import { ArrowFlight } from "@edgeandnode/amp";
+import { Effect, Stream } from "effect";
+
+const query = Effect.gen(function* () {
+  const arrow = yield* ArrowFlight.ArrowFlight;
+
+  // Query any published dataset
+  const sql = `
+    SELECT block_num, hash, gas_used
+    FROM "edgeandnode/ethereum_mainnet@0.0.1".blocks
+    WHERE gas_used > 0
+    ORDER BY block_num DESC
+    LIMIT 100
+  `;
+
+  return yield* arrow.query([sql] as any).pipe(Stream.runCollect);
+});
+```
+
+---
+
+# Transition from Local to Hosted
+
+Move your local development to the hosted environment.
+
+## Prerequisites
+
+- Contract deployed to target network
+- ABI matches deployed contract
+
+**Key concept:** You don't need to run your own blockchain indexer or configure custom providers. Your dataset declares a dependency on a published raw dataset (e.g., `edgeandnode/ethereum_mainnet@0.0.1`), and Amp handles the rest.
+
+## Step 1: Configure Environment
+
+Rename `.env.example` to `.env` and edit:
+
+```bash
+cp .env.example .env
+```
+
+Uncomment your target network in `.env`:
+
+```bash
 VITE_AMP_RPC_DATASET=edgeandnode/ethereum_mainnet@0.0.1
 VITE_AMP_NETWORK=ethereum-mainnet
 ```
 
-### Step 2: Update Your Dataset Configuration
+## Step 2: Update Dataset Config
 
 Edit `amp.config.ts` to target your onchain network:
 
@@ -36,65 +136,154 @@ import { abi } from "./app/src/lib/abi.ts"
 
 export default defineDataset(() => ({
   name: "counter",
-  network: "ethereum-mainnet",  // Match your target network
+  network: "ethereum-mainnet",  // Match .env
   dependencies: {
-    rpc: "edgeandnode/ethereum_mainnet@0.0.1",  // Use published raw dataset
+    rpc: "edgeandnode/ethereum_mainnet@0.0.1",  // Match .env
   },
   tables: eventTables(abi, "rpc"),
-  namespace: "your_namespace",  // Required for publishing
-  description: "Counter dataset tracking increment/decrement events on Ethereum",
-  keywords: ["Ethereum", "Counter", "Events"],
 }))
 ```
 
-**Important:** Your contract must be deployed to the target network, and the ABI must match the deployed contract.
+The ABI must match your deployed contract.
 
-**Discover More Patterns:**
+## Step 3: Test Configuration
 
-Explore published datasets in the [Amp Dataset Registry](https://playground.amp.thegraph.com/) to discover novel ways to transform your data.
-
-## Testing Your Hosted Environment Setup
-
-Verify your dataset queries hosted datasets correctly.
-
-### 1. Build Your Dataset Locally
+### Validate Build
 
 ```bash
 pnpm amp build -o /tmp/test-manifest.json
 ```
 
-This validates your SQL and configuration without deploying.
-
-### 2. Query via CLI
-
-Test querying the published raw dataset directly:
+### Generate Token
 
 ```bash
-# Authenticate first (generates temporary token)
-pnpm amp auth token --duration "1 hour"
+pnpm amp auth token --duration "3 days"
+```
 
-# Query the raw dataset
+Add this token to `.env` as `VITE_AMP_QUERY_TOKEN`.
+
+### Verify Connection
+
+Query the hosted dataset:
+
+```bash
 pnpm amp query \
   --flight-url https://gateway.amp.staging.thegraph.com \
   --bearer-token YOUR_TOKEN_HERE \
   'SELECT block_num, hash FROM "edgeandnode/ethereum_mainnet@0.0.1".blocks ORDER BY block_num DESC LIMIT 5'
 ```
 
-You should see recent Ethereum mainnet blocks, confirming you're querying published datasets representing onchain data.
+### Verify Your Contract
 
-### 3. Verify Contract Address
-
-Ensure your queries reference the correct deployed contract address:
+Confirm your contract is emitting events:
 
 ```bash
-# Query logs from your contract
 pnpm amp query \
   --flight-url https://gateway.amp.staging.thegraph.com \
   --bearer-token YOUR_TOKEN_HERE \
   'SELECT block_num, tx_hash FROM "edgeandnode/ethereum_mainnet@0.0.1".logs WHERE address = 0xYOUR_CONTRACT_ADDRESS LIMIT 10'
 ```
 
-If you get results, your contract is emitting events on the target network.
+If you see results, you're connected.
+
+## Step 4: Run Your App
+
+```bash
+just dev
+```
+
+---
+
+# Publish Your Dataset
+
+Share your dataset publicly via the Amp registry.
+
+## Prerequisites
+
+- Local queries return expected data
+- Contract deployed to target network
+- Dataset configured in `amp.config.ts`
+
+## Step 1: Add Publishing Metadata
+
+**Update `amp.config.ts`:**
+
+```typescript
+import { defineDataset, eventTables } from "@edgeandnode/amp"
+// @ts-ignore
+import { abi } from "./app/src/lib/abi.ts"
+
+export default defineDataset(() => ({
+  name: "counter",
+  network: "ethereum-mainnet",  // Target network
+  dependencies: {
+    rpc: "edgeandnode/ethereum_mainnet@0.0.1",  // Published raw dataset
+  },
+  tables: eventTables(abi, "rpc"),
+
+  // Required for publishing
+  namespace: "your_namespace",  // Your 0x address, ENS, or organization
+  description: "Counter dataset tracking increment/decrement events",
+  keywords: ["Ethereum", "Counter", "Events"],
+}))
+```
+
+## Step 2: Authenticate
+
+```bash
+pnpm amp auth login
+```
+
+## Step 3: Publish
+
+```bash
+pnpm amp publish --tag "0.0.1" --changelog "Initial release"
+```
+
+Your dataset is now published at: `your_namespace/counter@0.0.1`
+
+**View in registry:** [playground.amp.thegraph.com](https://playground.amp.thegraph.com/)
+
+## Step 4: Query Your Published Dataset
+
+Anyone can query your dataset:
+
+```bash
+pnpm amp query \
+  --flight-url https://gateway.amp.staging.thegraph.com \
+  --bearer-token YOUR_TOKEN \
+  'SELECT * FROM "your_namespace/counter@0.0.1".incremented LIMIT 10'
+```
+
+Update your application queries:
+
+```typescript
+// Local development
+const query = 'SELECT * FROM "_/counter@dev".incremented LIMIT 10'
+
+// Published - specific version
+const query = 'SELECT * FROM "your_namespace/counter@0.0.1".incremented LIMIT 10'
+
+// Published - always use latest
+const query = 'SELECT * FROM "your_namespace/counter@latest".incremented LIMIT 10'
+```
+
+## Updating Your Dataset
+
+Publish new versions:
+
+```bash
+pnpm amp publish --tag "0.0.2" --changelog "Added derived table"
+```
+
+Users can query `@0.0.2` or `@latest` to automatically use the most recent.
+
+## Dataset Versioning
+
+- `@dev` - Local development (unpublished)
+- `@0.0.1`, `@1.2.3` - Specific published versions
+- `@latest` - Most recent published version (updates automatically)
+
 
 ## Publishing Your Dataset (Optional)
 
