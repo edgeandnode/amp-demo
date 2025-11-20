@@ -328,11 +328,7 @@ export default defineDataset(() => {
 
 **2. Watch auto-deploy:**
 
-The `just dev` watcher automatically detects changes to `amp.config.ts` and redeploys. Just save the file and watch the `simple_filter` table materialize in :
-
-```bash
-just logs amp
-```
+The `just dev` watcher automatically detects changes to `amp.config.ts` and redeploys. Just save the file and watch the `simple_filter` table materialize.
 
 **3. Test your derived table:**
 
@@ -376,7 +372,7 @@ Amp provides specialized SQL functions for blockchain data operations:
 
 > **Note:** `eventTables(abi)` already handles event decoding automatically. You typically only need these functions for advanced use cases. Custom UDFs are supported via the `functions` field in `amp.config.ts` but are currently experimental.
 
-For complete documentation and examples, see [docs/udfs.md](docs/udfs.md).
+For complete UDF documentation and examples, see [docs/udfs.md](docs/udfs.md).
 
 # Troubleshooting
 
