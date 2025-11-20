@@ -357,13 +357,6 @@ Explore published datasets in the [Amp Dataset Registry](https://playground.amp.
 
 Ready to shift from local Anvil development to building with Ethereum mainnet, Base, or Arbitrum data? This section covers configuring your development environment to consume published blockchain data, exploring published datasets, testing your setup, and publishing your dataset to the Amp registry.
 
-## Supported Networks
-
-- **ethereum-mainnet** - Ethereum L1
-- **arbitrum-one** - Arbitrum L2
-- **base-mainnet** - Base L2
-- **base-sepolia** - Base Sepolia testnet
-
 ## Configuration
 
 Moving to onchain networks means switching from your local Anvil node to **published raw datasets**. These are maintained by The Graph and include all blocks, transactions, and logs for each supported network.
