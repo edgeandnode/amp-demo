@@ -355,7 +355,7 @@ Explore published datasets in the [Amp Dataset Registry](https://playground.amp.
 
 # Onchain Development Workflow
 
-Ready to move from local Anvil development to Ethereum mainnet, Base, or Arbitrum? This section covers configuring your development environment to consume published blockchain data, exploring published datasets, testing your setup, and publishing your dataset to the Amp registry.
+Ready to shift from local Anvil development to building with Ethereum mainnet, Base, or Arbitrum data? This section covers configuring your development environment to consume published blockchain data, exploring published datasets, testing your setup, and publishing your dataset to the Amp registry.
 
 ## Supported Networks
 
