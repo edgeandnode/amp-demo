@@ -326,13 +326,12 @@ export default defineDataset(() => {
 });
 ```
 
-**2. Deploy your changes:**
+**2. Watch auto-deploy:**
+
+The `just dev` watcher automatically detects changes to `amp.config.ts` and redeploys. Just save the file and watch the `simple_filter` table materialize in :
 
 ```bash
-just down
-just up
-just dev
-just logs (optional)
+just logs amp
 ```
 
 **3. Test your derived table:**
@@ -381,10 +380,19 @@ For complete documentation and examples, see [docs/udfs.md](docs/udfs.md).
 
 # Troubleshooting
 
-## Iterating Quickly
+## Config Changes Not Applying
+
+**The fast way:** Config changes are auto-detected by `just dev`. Just save `amp.config.ts` and watch the logs:
 
 ```bash
-# Clean slate (clears cached data)
+just logs amp
+```
+
+**Only use full restart if:**
+- Docker services are corrupted
+- Need to clear all cached data/volumes
+
+```bash
 just down
 just up
 ```
