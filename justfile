@@ -17,7 +17,6 @@ copy_env:
 install:
     pnpm install
     forge build
-    just copy_env
 
 # Install amp
 ampup:
