@@ -1,44 +1,30 @@
 "use client";
 
-import { ArrowFlight } from "@edgeandnode/amp";
 import { useQuery } from "@tanstack/react-query";
-import { Table } from "apache-arrow";
-import { Chunk, Effect, Schema, Stream } from "effect";
-import { runtime } from "../lib/runtime.ts";
+import { performAmpQuery } from "../lib/runtime.ts";
 
-const DecrementSchema = Schema.Struct({
-  block_num: Schema.BigInt,
-  timestamp: Schema.NonNegativeInt,
-  count: Schema.String,
-});
-type DecrementSchema = typeof DecrementSchema.Type;
-
-const DecrementQueryLive = Effect.gen(function* () {
-  const arrow = yield* ArrowFlight.ArrowFlight;
-  /**
-   * This query hits your deployed dataset from running `pnpm amp dev`.
-   * **Notice** the FROM clause structure:
-   * - `amp_demo` -> namespace. `_` is the default. if you set the namespace in the amp.config.ts, then use that namespace here
-   * - `counter` -> name; set in the amp.config.ts
-   * - `dev` -> revision. `dev` is the default. if when you run the register and deploy commands, if you set the tag, (0.0.1 for example); use that value
-   * - `decremented` -> the table named derived from your contract abis
-   * => the end result: "amp_demo/conter@dev".decremented queries the decremented table on your dataset
-   */
-  const query = `SELECT block_num, timestamp, count FROM "amp_demo/counter@dev".decremented ORDER BY block_num DESC`;
-  const queryTemplate: TemplateStringsArray = Object.assign([query], {
-    raw: [query],
-  });
-
-  return yield* arrow.query(queryTemplate).pipe(Stream.runCollect);
-});
+type Decrement = {
+  block_num: string;
+  timestamp: number;
+  count: string;
+};
 
 export function DecrementTable() {
   const { data } = useQuery({
     queryKey: ["Amp", "Demo", { table: "decrements" }] as const,
     async queryFn() {
-      const batch = Chunk.toArray(await runtime.runPromise(DecrementQueryLive));
-      const table = new Table(batch);
-      return [...table].map((row) => DecrementSchema.make(row));
+      /**
+       * This query hits your deployed dataset from running `pnpm amp dev`.
+       * **Notice** the FROM clause structure:
+       * - `eth_global` -> namespace. `_` is the default. if you set the namespace in the amp.config.ts, then use that namespace here
+       * - `counter` -> name; set in the amp.config.ts
+       * - `dev` -> revision. `dev` is the default. if when you run the register and deploy commands, if you set the tag, (0.0.1 for example); use that value
+       * - `decremented` -> the table named derived from your contract abis
+       * => the end result: "eth_global/conter@dev".decremented queries the decremented table on your dataset
+       */
+      return await performAmpQuery<Decrement>(
+        `SELECT block_num, timestamp, count FROM "eth_global/counter@dev".decremented ORDER BY block_num DESC`
+      );
     },
   });
 
@@ -78,23 +64,19 @@ export function DecrementTable() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-white/10">
-                {(data ?? [])
-                  .map((decrement) =>
-                    Schema.encodeSync(DecrementSchema)(decrement)
-                  )
-                  .map((decrement) => (
-                    <tr key={decrement.timestamp}>
-                      <td className="py-4 pr-3 pl-4 text-sm font-medium whitespace-nowrap text-gray-900 sm:pl-0 dark:text-white">
-                        {decrement.block_num}
-                      </td>
-                      <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
-                        {decrement.timestamp}
-                      </td>
-                      <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
-                        {decrement.count}
-                      </td>
-                    </tr>
-                  ))}
+                {(data ?? []).map((decrement) => (
+                  <tr key={decrement.timestamp}>
+                    <td className="py-4 pr-3 pl-4 text-sm font-medium whitespace-nowrap text-gray-900 sm:pl-0 dark:text-white">
+                      {decrement.block_num}
+                    </td>
+                    <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
+                      {decrement.timestamp}
+                    </td>
+                    <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
+                      {decrement.count}
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
