@@ -160,6 +160,12 @@ Query the new table:
 pnpm amp query 'SELECT * FROM "_/counter@dev".active_blocks LIMIT 10'
 ```
 
+**Filtering for a specific contract:**
+
+```bash
+pnpm amp query 'SELECT * FROM anvil.logs WHERE address = 0xYOUR_CONTRACT_ADDRESS LIMIT 10'
+```
+
 ### Derived Dataset Tips
 
 - **Dependencies** give you access to other datasets (like `anvil.blocks`, `anvil.logs`)
