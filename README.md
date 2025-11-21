@@ -152,17 +152,18 @@ export default defineDataset(() => {
 });
 ```
 
-Deploy your changes:
+Amp automatically detects changes to `amp.config.ts` and generates your new `active_blocks` table.
 
-```bash
-just down
-just up
-```
-
-Query your new table:
+Query the new table:
 
 ```bash
 pnpm amp query 'SELECT * FROM "_/counter@dev".active_blocks LIMIT 10'
+```
+
+**Filtering for a specific contract:**
+
+```bash
+pnpm amp query 'SELECT * FROM anvil.logs WHERE address = 0xYOUR_CONTRACT_ADDRESS LIMIT 10'
 ```
 
 ### Derived Dataset Tips
@@ -170,7 +171,7 @@ pnpm amp query 'SELECT * FROM "_/counter@dev".active_blocks LIMIT 10'
 - **Dependencies** give you access to other datasets (like `anvil.blocks`, `anvil.logs`)
 - You can `JOIN`, `FILTER`, and transform data from dependencies
 - Derived tables use a **streaming model** with some SQL limitations (no `GROUP BY`, `LIMIT`, or `ORDER BY` in the table definition)
-- See [docs/STREAMING.md](docs/streaming.md) for detailed streaming SQL documentation
+- See [docs/streaming.md](docs/streaming.md) for detailed streaming SQL documentation
 
 **Prototype with Amp Studio:**
 
@@ -184,7 +185,7 @@ This opens a web interface where you can test SQL queries before adding them to 
 
 The frontend (`app/src`) shows how to query Amp datasets from TypeScript using the `@edgeandnode/amp` client library.
 
-Example from `app/src/components/IncrementedEvents.tsx`:
+Example from `app/src/components/IncrementTable.tsx`:
 
 ```typescript
 import { useQuery } from "@edgeandnode/amp";
@@ -210,7 +211,7 @@ All clients use the same SQL query language and connect to the same Amp server.
 ## Supported Chains
 
 Local
-- **Foundry Anvil** (local development)
+- **Anvil or Hardhat** (local development)
 
 On hosted instance (https://playground.amp.thegraph.com/)
 - **Ethereum** mainnet
@@ -219,6 +220,12 @@ On hosted instance (https://playground.amp.thegraph.com/)
 - **Base** Sepolia
 
 Roadmap includes all major chains.
+
+## Hosted Environment Development
+
+Amp easily transitions from local development to developing on datasets located in a hosted environment.
+
+Follow this **[guide](docs/hosted-env.md)** to transition Amp from local datasets to published datasets hosted by Edge & Node.
 
 ## Interactive Development
 
@@ -235,14 +242,13 @@ pnpm amp query 'SELECT * FROM "_/counter@dev".incremented LIMIT 10'
 
 ## Next Steps
 
+- **[docs/hosted-env.md](docs/hosted-env.md)** - Move from querying local datasets to datasets hosted by Edge & Node
 - **[docs/streaming.md](docs/streaming.md)** - Complete guide to streaming SQL limitations and patterns
 - **[docs/troubleshooting.md](docs/troubleshooting.md)** - Troubleshooting guide and detailed command reference
-- **[docs/config.md](docs/config.md)** - Advanced configuration (object stores, providers, environment variables)
-- **[docs/modes.md](docs/modes.md)** - Production deployment patterns
-- **[docs/glossary.md](docs/glossary.md)** - Terminology and architecture concepts
-- **[docs/udfs.md](docs/udfs.md)** - Built-in SQL functions for blockchain data
-- **[PUBLISH.md](./PUBLISH.md)** - Publishing datasets to the network
-- **[Amp Dataset Registry](https://playground.amp.thegraph.com/)** - Explore published datasets
+- **[Configuration Guide](https://github.com/edgeandnode/amp/blob/main/docs/config.md)** - Advanced configuration (object stores, providers, environment variables)
+- **[Operational Modes](https://github.com/edgeandnode/amp/blob/main/docs/modes.md)** - Production deployment patterns
+- **[Glossary](https://github.com/edgeandnode/amp/blob/main/docs/glossary.md)** - Terminology and architecture concepts
+- **[UDFs](https://github.com/edgeandnode/amp/blob/main/docs/udfs.md)** - Built-in SQL functions for blockchain data
 
 ## Common Questions
 
@@ -263,7 +269,6 @@ Local datasets use the `@dev` tag. Published datasets use version numbers like `
 ```
 amp-demo/
 ├── amp.config.ts                    # Dataset configuration (your SQL tables)
-├── amp.config.extended-example.ts   # Extended example with more patterns
 ├── contracts/src/Counter.sol        # Smart contract with events
 ├── app/                             # React frontend
 │   └── src/components/              # Components that query Amp datasets
@@ -278,6 +283,6 @@ amp-demo/
 
 ## Need Help?
 
-- **Troubleshooting:** See [docs/TROUBLESHOOTING.md](docs/troubleshooting.md)
-- **Detailed Docs:** See [docs/README.md](docs/README.md)
+- **Troubleshooting:** See [docs/troubleshooting.md](docs/troubleshooting.md)
+- **Detailed Docs:** See [Amp Documentation](https://github.com/edgeandnode/amp/tree/main/docs)
 - **Questions:** Open an issue on GitHub
