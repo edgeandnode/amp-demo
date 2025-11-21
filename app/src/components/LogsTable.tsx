@@ -1,45 +1,27 @@
 "use client";
 
-import { ArrowFlight } from "@edgeandnode/amp";
-import { Table } from "apache-arrow";
-import { Effect, Schema, Stream } from "effect";
 import { useState, useEffect } from "react";
-import { runtime, RPC_SOURCE } from "../lib/runtime.ts";
+import { ampClient, RPC_SOURCE } from "../lib/runtime.ts";
 
-const LogsSchema = Schema.Struct({
-  block_num: Schema.BigInt,
-  block_hash: Schema.Uint8ArrayFromHex,
-  address: Schema.Uint8ArrayFromHex,
-  timestamp: Schema.NonNegativeInt,
-  tx_hash: Schema.Uint8ArrayFromHex,
-});
-type LogsSchema = typeof LogsSchema.Type;
-
-const LogsQueryLive = Effect.gen(function* () {
-  const arrow = yield* ArrowFlight.ArrowFlight;
-  const query = `SELECT block_num, block_hash, address, timestamp, tx_hash FROM "${RPC_SOURCE}".logs`;
-  const queryTemplate: TemplateStringsArray = Object.assign([query], {
-    raw: [query],
-  });
-
-  return arrow.stream(queryTemplate).pipe(Stream.toAsyncIterable);
-});
+type Log = {
+  block_num: string;
+  block_hash: string;
+  address: string;
+  timestamp: number;
+  tx_hash: string;
+};
 
 export function LogsTable() {
-  const [logs, setLogs] = useState<Array<LogsSchema>>([]);
+  const [logs, setLogs] = useState<Array<Log>>([]);
 
   useEffect(() => {
     const abortController = new AbortController();
 
     const run = async () => {
-      const iterator = await runtime.runPromise(LogsQueryLive, {
-        signal: abortController.signal,
-      });
-
-      for await (const item of iterator) {
-        const table = new Table(item.data);
-        const decoded = [...table].map((item) => LogsSchema.make(item));
-        setLogs((current) => [...current, ...decoded]);
+      for await (const batch of ampClient.stream(
+        `SELECT block_num, block_hash, address, timestamp, tx_hash FROM "${RPC_SOURCE}".logs`
+      )) {
+        setLogs((current) => [...current, ...batch]);
       }
 
       return () => abortController.abort();
@@ -84,21 +66,19 @@ export function LogsTable() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-white/10">
-                {logs
-                  .map((log) => Schema.encodeSync(LogsSchema)(log))
-                  .map((log) => (
-                    <tr key={log.timestamp}>
-                      <td className="py-4 pr-3 pl-4 text-sm font-medium whitespace-nowrap text-gray-900 sm:pl-0 dark:text-white">
-                        {log.block_num}
-                      </td>
-                      <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
-                        {log.timestamp}
-                      </td>
-                      <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
-                        {`0x${log.address}`}
-                      </td>
-                    </tr>
-                  ))}
+                {logs.map((log) => (
+                  <tr key={log.timestamp}>
+                    <td className="py-4 pr-3 pl-4 text-sm font-medium whitespace-nowrap text-gray-900 sm:pl-0 dark:text-white">
+                      {log.block_num}
+                    </td>
+                    <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
+                      {log.timestamp}
+                    </td>
+                    <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
+                      {`0x${log.address}`}
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
