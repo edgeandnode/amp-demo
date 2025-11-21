@@ -43,7 +43,7 @@ Builders should demonstrate how Amp datasets can power real-world insights, anal
 Learn about other prize tracks such as building with Subgraphs, Substreams, Token API, and The Graph's MCP servers [here](https://ethglobal.com/events/buenosaires/prizes/the-graph)
 
 ## Prerequisites
-__note: these dependencies and all other instructions assume you are using the Typescript SDK. There are also Rust and Python clients available for users that prefer.__
+__note: these dependencies and all other instructions assume you are using the Typescript SDK. There are also Rust and Python clients available.__
 
 ### Required Software
 
