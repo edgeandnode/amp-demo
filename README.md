@@ -183,21 +183,7 @@ This opens a web interface where you can test SQL queries before adding them to 
 
 ## Querying in Your Application
 
-The frontend (`app/src`) shows how to query Amp datasets from TypeScript using the `@edgeandnode/amp` client library.
-
-Example from `app/src/components/IncrementTable.tsx`:
-
-```typescript
-import { useQuery } from "@edgeandnode/amp";
-
-const { data } = useQuery(`
-  SELECT * FROM "_/counter@dev".incremented
-  ORDER BY block_num DESC
-  LIMIT 10
-`);
-```
-
-The library is built on Apache Arrow Flight for high-performance data transfer.
+The frontend (`app/src`) shows how to query Amp datasets from TypeScript. See [`app/src/components/IncrementTable.tsx`](app/src/components/IncrementTable.tsx) for a complete example.
 
 ## Client Libraries
 
