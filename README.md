@@ -9,6 +9,7 @@ Perfect for hackathons, prototypes, and production applications that need fast a
 ## What You'll Build
 
 This template shows you how to:
+
 - Query blockchain data using SQL (both from the CLI and in your app)
 - Create custom datasets by combining and transforming on-chain data
 - Build a React app that displays live blockchain data
@@ -33,6 +34,7 @@ Works seamlessly with **Foundry**, **Hardhat**, and other local development envi
 **Rewarding the most compelling end-to-end product built on Amp datasets.**
 
 Example Use Cases:
+
 - Cross-chain portfolio dashboard that aggregates wallet positions and liquidity using Amp token datasets
 - Risk analytics or MEV monitor that visualizes transaction patterns or protocol surface exposure
 - NFT trait liquidity explorer that ranks collections by floor depth and trading velocity using Amp NFT datasets
@@ -43,7 +45,8 @@ Builders should demonstrate how Amp datasets can power real-world insights, anal
 Learn about other prize tracks such as building with Subgraphs, Substreams, Token API, and The Graph's MCP servers [here](https://ethglobal.com/events/buenosaires/prizes/the-graph)
 
 ## Prerequisites
-__note: these dependencies and all other instructions assume you are using the Typescript SDK. There are also Rust and Python clients available for users that prefer.__
+
+**note: these dependencies and all other instructions assume you are using the Typescript SDK. There are also Rust and Python clients available for users that prefer.**
 
 ### Required Software
 
@@ -94,6 +97,7 @@ You just queried blockchain data with SQL! The `incremented` table was automatic
 ### Dataset Naming
 
 Datasets use the format `"namespace/name@version"`:
+
 - `"_/counter@dev"` - Your local development dataset
 - `"_/anvil@0.0.1"` - Published Anvil blockchain data (blocks, transactions, logs)
 - `@dev` for local development, `@latest` or `@1.0.0` for published datasets
@@ -103,6 +107,7 @@ The underscore `_/` is your personal namespace for local development.
 ### What This Template Gives You
 
 This template includes:
+
 1. A **Counter** smart contract that emits `Incremented` and `Decremented` events
 2. An Amp dataset that automatically creates SQL tables from those events
 3. A React frontend that queries and displays the data
@@ -126,6 +131,7 @@ export default defineDataset(() => {
   const baseTables = eventTables(abi);
 
   return {
+    namespace: "eth_global",
     name: "counter",
     network: "anvil",
     description: "Counter dataset with event tables and custom queries",
@@ -188,6 +194,7 @@ The frontend (`app/src`) shows how to query Amp datasets from TypeScript. See [`
 ## Client Libraries
 
 This template uses **TypeScript**, but Amp supports multiple languages:
+
 - **TypeScript/JavaScript** - `@edgeandnode/amp` (used in this template)
 - **Rust** - Available via Amp CLI
 - **Python** - Available via Amp CLI
@@ -197,9 +204,11 @@ All clients use the same SQL query language and connect to the same Amp server.
 ## Supported Chains
 
 Local
+
 - **Anvil or Hardhat** (local development)
 
 On hosted instance (https://playground.amp.thegraph.com/)
+
 - **Ethereum** mainnet
 - **Arbitrum** mainnet
 - **Base** mainnet
@@ -257,7 +266,8 @@ amp-demo/
 ├── amp.config.ts                    # Dataset configuration (your SQL tables)
 ├── contracts/src/Counter.sol        # Smart contract with events
 ├── app/                             # React frontend
-│   └── src/components/              # Components that query Amp datasets
+│   ├── src/components/              # Components that query Amp datasets
+│   └── src/lib/                     # Utils to query Amp datasets/setup viem, etc
 ├── infra/
 │   ├── amp/
 │   │   ├── providers/               # Network connection configs

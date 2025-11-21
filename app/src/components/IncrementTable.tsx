@@ -1,44 +1,30 @@
 "use client";
 
-import { ArrowFlight } from "@edgeandnode/amp";
 import { useQuery } from "@tanstack/react-query";
-import { Table } from "apache-arrow";
-import { Chunk, Effect, Schema, Stream } from "effect";
-import { runtime } from "../lib/runtime.ts";
+import { performAmpQuery } from "../lib/runtime.ts";
 
-const IncrementSchema = Schema.Struct({
-  block_num: Schema.BigInt,
-  timestamp: Schema.NonNegativeInt,
-  count: Schema.String,
-});
-type IncrementSchema = typeof IncrementSchema.Type;
-
-const IncrementQueryLive = Effect.gen(function* () {
-  const arrow = yield* ArrowFlight.ArrowFlight;
-  /**
-   * This query hits your deployed dataset from running `pnpm amp dev`.
-   * **Notice** the FROM clause structure:
-   * - `amp_demo` -> namespace. `_` is the default. if you set the namespace in the amp.config.ts, then use that namespace here
-   * - `counter` -> name; set in the amp.config.ts
-   * - `dev` -> revision. `dev` is the default. if when you run the register and deploy commands, if you set the tag, (0.0.1 for example); use that value
-   * - `incremented` -> the table named derived from your contract abis
-   * => the end result: "amp_demo/conter@dev".incremented queries the incremented table on your dataset
-   */
-  const query = `SELECT block_num, timestamp, count FROM "amp_demo/counter@dev".incremented ORDER BY block_num DESC`;
-  const queryTemplate: TemplateStringsArray = Object.assign([query], {
-    raw: [query],
-  });
-
-  return yield* arrow.query(queryTemplate).pipe(Stream.runCollect);
-});
+type Increment = {
+  block_num: string;
+  timestamp: number;
+  count: string;
+};
 
 export function IncrementTable() {
   const { data } = useQuery({
     queryKey: ["Amp", "Demo", { table: "increments" }] as const,
     async queryFn() {
-      const batch = Chunk.toArray(await runtime.runPromise(IncrementQueryLive));
-      const table = new Table(batch);
-      return [...table].map((row) => IncrementSchema.make(row));
+      /**
+       * This query hits your deployed dataset from running `pnpm amp dev`.
+       * **Notice** the FROM clause structure:
+       * - `eth_global` -> namespace. `_` is the default. if you set the namespace in the amp.config.ts, then use that namespace here
+       * - `counter` -> name; set in the amp.config.ts
+       * - `dev` -> revision. `dev` is the default. if when you run the register and deploy commands, if you set the tag, (0.0.1 for example); use that value
+       * - `incremented` -> the table named derived from your contract abis
+       * => the end result: "eth_global/conter@dev".incremented queries the incremented table on your dataset
+       */
+      return await performAmpQuery<Increment>(
+        `SELECT block_num, timestamp, count FROM "eth_global/counter@dev".incremented ORDER BY block_num DESC`
+      );
     },
   });
 
@@ -78,23 +64,19 @@ export function IncrementTable() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-white/10">
-                {(data ?? [])
-                  .map((increment) =>
-                    Schema.encodeSync(IncrementSchema)(increment)
-                  )
-                  .map((increment) => (
-                    <tr key={increment.timestamp}>
-                      <td className="py-4 pr-3 pl-4 text-sm font-medium whitespace-nowrap text-gray-900 sm:pl-0 dark:text-white">
-                        {increment.block_num}
-                      </td>
-                      <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
-                        {increment.timestamp}
-                      </td>
-                      <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
-                        {increment.count}
-                      </td>
-                    </tr>
-                  ))}
+                {(data ?? []).map((increment) => (
+                  <tr key={increment.timestamp}>
+                    <td className="py-4 pr-3 pl-4 text-sm font-medium whitespace-nowrap text-gray-900 sm:pl-0 dark:text-white">
+                      {increment.block_num}
+                    </td>
+                    <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
+                      {increment.timestamp}
+                    </td>
+                    <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
+                      {increment.count}
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
