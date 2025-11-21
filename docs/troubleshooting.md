@@ -79,7 +79,7 @@ pnpm amp build -o /tmp/test-manifest.json
 
 **Common Causes:**
 - SQL syntax errors in derived tables
-- Streaming model violations (see [STREAMING.md](streaming.md))
+- Streaming model violations (see [streaming.md](streaming.md))
 - Services not fully started (wait for `just up` to complete)
 - Network connectivity issues with local Anvil node
 
@@ -136,7 +136,7 @@ pnpm amp query '
 '
 ```
 
-See [STREAMING.md](streaming.md) for a complete guide to streaming limitations.
+See [streaming.md](streaming.md) for a complete guide to streaming limitations.
 
 #### "invalid value 'dev' for '--tag'"
 
@@ -441,9 +441,9 @@ just down && just up
 If you're still having issues:
 
 1. **Check the docs:**
-   - [STREAMING.md](streaming.md) - SQL limitations
-   - [config.md](config.md) - Configuration reference
-   - [glossary.md](glossary.md) - Terminology
+   - [streaming.md](streaming.md) - SQL limitations
+   - [Configuration Guide](https://github.com/edgeandnode/amp/blob/main/docs/config.md) - Configuration reference
+   - [Glossary](https://github.com/edgeandnode/amp/blob/main/docs/glossary.md) - Terminology
 
 2. **Search existing issues:**
    Visit the GitHub repository and search for similar problems.
@@ -672,7 +672,7 @@ just studio
 
 ### Deploy to Production
 
-See [PUBLISH.md](../PUBLISH.md) for publishing datasets to the network.
+See [docs/hosted-env.md](hosted-env.md) for publishing datasets to the hosted service.
 
 ### Debug Dataset Issues
 
@@ -721,4 +721,4 @@ export AMP_URL=http://localhost:1602
 pnpm amp query 'SELECT * FROM "_/counter@dev".incremented'
 ```
 
-See [config.md](config.md) for complete configuration reference.
+See the [Configuration Guide](https://github.com/edgeandnode/amp/blob/main/docs/config.md) for complete configuration reference.

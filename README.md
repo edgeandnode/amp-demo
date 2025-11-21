@@ -165,7 +165,7 @@ pnpm amp query 'SELECT * FROM "_/counter@dev".active_blocks LIMIT 10'
 - **Dependencies** give you access to other datasets (like `anvil.blocks`, `anvil.logs`)
 - You can `JOIN`, `FILTER`, and transform data from dependencies
 - Derived tables use a **streaming model** with some SQL limitations (no `GROUP BY`, `LIMIT`, or `ORDER BY` in the table definition)
-- See [docs/STREAMING.md](docs/streaming.md) for detailed streaming SQL documentation
+- See [docs/streaming.md](docs/streaming.md) for detailed streaming SQL documentation
 
 **Prototype with Amp Studio:**
 
@@ -239,10 +239,10 @@ pnpm amp query 'SELECT * FROM "_/counter@dev".incremented LIMIT 10'
 - **[docs/hosted-env.md](docs/hosted-env.md)** - Move from querying local datasets to datasets hosted by Edge & Node
 - **[docs/streaming.md](docs/streaming.md)** - Complete guide to streaming SQL limitations and patterns
 - **[docs/troubleshooting.md](docs/troubleshooting.md)** - Troubleshooting guide and detailed command reference
-- **[docs/config.md](docs/config.md)** - Advanced configuration (object stores, providers, environment variables)
-- **[docs/modes.md](docs/modes.md)** - Production deployment patterns
-- **[docs/glossary.md](docs/glossary.md)** - Terminology and architecture concepts
-- **[docs/udfs.md](docs/udfs.md)** - Built-in SQL functions for blockchain data
+- **[Configuration Guide](https://github.com/edgeandnode/amp/blob/main/docs/config.md)** - Advanced configuration (object stores, providers, environment variables)
+- **[Operational Modes](https://github.com/edgeandnode/amp/blob/main/docs/modes.md)** - Production deployment patterns
+- **[Glossary](https://github.com/edgeandnode/amp/blob/main/docs/glossary.md)** - Terminology and architecture concepts
+- **[UDFs](https://github.com/edgeandnode/amp/blob/main/docs/udfs.md)** - Built-in SQL functions for blockchain data
 
 ## Common Questions
 
@@ -277,6 +277,6 @@ amp-demo/
 
 ## Need Help?
 
-- **Troubleshooting:** See [docs/TROUBLESHOOTING.md](docs/troubleshooting.md)
-- **Detailed Docs:** See [docs/README.md](docs/README.md)
+- **Troubleshooting:** See [docs/troubleshooting.md](docs/troubleshooting.md)
+- **Detailed Docs:** See [Amp Documentation](https://github.com/edgeandnode/amp/tree/main/docs)
 - **Questions:** Open an issue on GitHub
