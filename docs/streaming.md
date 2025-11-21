@@ -326,7 +326,7 @@ tables: {
 
 ### Pattern 4: Decode and Transform
 
-Use Amp's built-in functions to decode event data (see [udfs.md](udfs.md)):
+Use Amp's built-in functions to decode event data (see [UDFs](https://github.com/edgeandnode/amp/blob/main/docs/udfs.md)):
 
 ```typescript
 tables: {
