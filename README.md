@@ -24,26 +24,6 @@ This template shows you how to:
 
 Works seamlessly with **Foundry**, **Hardhat**, and other local development environments.
 
-## The Graph Amp Prize Info
-
-**The Best Use of Amp Datasets**
-🥇 1st place - $3,000
-🥈 2nd place - $2,000
-🥉 3rd place - $1,000
-
-**Rewarding the most compelling end-to-end product built on Amp datasets.**
-
-Example Use Cases:
-
-- Cross-chain portfolio dashboard that aggregates wallet positions and liquidity using Amp token datasets
-- Risk analytics or MEV monitor that visualizes transaction patterns or protocol surface exposure
-- NFT trait liquidity explorer that ranks collections by floor depth and trading velocity using Amp NFT datasets
-
-**Qualification Requirements**
-Builders should demonstrate how Amp datasets can power real-world insights, analytics, alerts, agent workflows, risk dashboards, or user experiences across DeFi, NFTs, RWAs, or AI.
-
-Learn about other prize tracks such as building with Subgraphs, Substreams, Token API, and The Graph's MCP servers [here](https://ethglobal.com/events/buenosaires/prizes/the-graph)
-
 ## Prerequisites
 
 **note: these dependencies and all other instructions assume you are using the Typescript SDK. There are also Rust and Python clients available for users that prefer.**
