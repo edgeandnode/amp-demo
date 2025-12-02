@@ -6,6 +6,8 @@ Build real-time dashboards, analytics tools, and data-driven applications using 
 
 Perfect for hackathons, prototypes, and production applications that need fast access to on-chain data.
 
+> **Have feature requests or questions?** [Open a GitHub issue](https://github.com/edgeandnode/amp-demo/issues)
+
 ## What You'll Build
 
 This template shows you how to:
