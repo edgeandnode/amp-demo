@@ -1,0 +1,43 @@
+name: Feature Request or Question
+description: Suggest a feature or ask a question about Amp
+title: "[Feedback]: "
+labels: ["feedback"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to share your feedback!
+  - type: dropdown
+    id: type
+    attributes:
+      label: What type of feedback is this?
+      options:
+        - Feature Request
+        - Question
+        - Documentation Improvement
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe your feature request or question
+      placeholder: Tell us what you're thinking...
+    validations:
+      required: true
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use Case
+      description: What problem would this solve? How would you use it?
+      placeholder: I'm trying to...
+    validations:
+      required: false
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any other context, screenshots, or examples
+    validations:
+      required: false

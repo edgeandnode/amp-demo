@@ -29,7 +29,16 @@ export function App() {
             <div className="flex">
               <div className="flex shrink-0 items-center">Amp Demo</div>
             </div>
-            <div className="w-fit flex items-center">
+            <div className="w-fit flex items-center gap-x-4">
+              <a
+                href="https://github.com/edgeandnode/amp-demo/issues"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
+              >
+                Questions & Feature Requests
+              </a>
+              <span className="text-gray-300 dark:text-gray-600">|</span>
               {`${address.substring(0, 6)}...${address.substring(
                 address.length - 6,
                 address.length
