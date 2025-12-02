@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Amp Documentation
+    url: https://github.com/edgeandnode/amp/tree/main/docs
+    about: Check out the full Amp documentation

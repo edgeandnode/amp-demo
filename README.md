@@ -12,6 +12,8 @@ This is a fullstack demo showcasing Amp.
 
 **Please note** - For extensive documentation on Amp, see the offical [Amp repository](https:///www.github.com/edgeandnode/amp).
 
+**Have feature requests or questions?** [Open a GitHub issue](https://github.com/edgeandnode/amp-demo/issues)
+
 By following this demo's readme, you will learn how to:
 
 - Query blockchain data using SQL (both from the CLI and in your app)
