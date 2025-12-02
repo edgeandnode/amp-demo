@@ -6,13 +6,18 @@ Build real-time dashboards, analytics tools, and data-driven applications using 
 
 Perfect for hackathons, prototypes, and production applications that need fast access to on-chain data.
 
-## What You'll Build
+## What's in This Repository
 
-This template shows you how to:
+This is a fullstack demo showcasing Amp.
+
+**Please note** - For extensive documentation on Amp, see the offical [Amp repository](https:///www.github.com/edgeandnode/amp).
+
+By following this demo's readme, you will learn how to:
 
 - Query blockchain data using SQL (both from the CLI and in your app)
 - Create custom datasets by combining and transforming on-chain data
-- Build a React app that displays live blockchain data
+- Build a React app that displays live blockchain data powered by Amp
+- Work in both local and hosted development environments
 
 **The Magic:** Write a Solidity contract with events → Deploy to your local chain → Query with SQL immediately. No indexing code required.
 
