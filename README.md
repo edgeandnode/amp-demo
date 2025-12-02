@@ -6,15 +6,20 @@ Build real-time dashboards, analytics tools, and data-driven applications using 
 
 Perfect for hackathons, prototypes, and production applications that need fast access to on-chain data.
 
-> **Have feature requests or questions?** [Open a GitHub issue](https://github.com/edgeandnode/amp-demo/issues)
+## What's in This Repository
 
-## What You'll Build
+This is a fullstack demo showcasing Amp.
 
-This template shows you how to:
+**Please note** - For extensive documentation on Amp, see the offical [Amp repository](https:///www.github.com/edgeandnode/amp).
+
+**Have feature requests or questions?** [Open a GitHub issue](https://github.com/edgeandnode/amp-demo/issues)
+
+By following this demo's readme, you will learn how to:
 
 - Query blockchain data using SQL (both from the CLI and in your app)
 - Create custom datasets by combining and transforming on-chain data
-- Build a React app that displays live blockchain data
+- Build a React app that displays live blockchain data powered by Amp
+- Work in both local and hosted development environments
 
 **The Magic:** Write a Solidity contract with events → Deploy to your local chain → Query with SQL immediately. No indexing code required.
 
@@ -25,26 +30,6 @@ This template shows you how to:
 3. **Build with familiar tools** - Use SQL in TypeScript, Python, Rust, or from the CLI
 
 Works seamlessly with **Foundry**, **Hardhat**, and other local development environments.
-
-## The Graph Amp Prize Info
-
-**The Best Use of Amp Datasets**
-🥇 1st place - $3,000
-🥈 2nd place - $2,000
-🥉 3rd place - $1,000
-
-**Rewarding the most compelling end-to-end product built on Amp datasets.**
-
-Example Use Cases:
-
-- Cross-chain portfolio dashboard that aggregates wallet positions and liquidity using Amp token datasets
-- Risk analytics or MEV monitor that visualizes transaction patterns or protocol surface exposure
-- NFT trait liquidity explorer that ranks collections by floor depth and trading velocity using Amp NFT datasets
-
-**Qualification Requirements**
-Builders should demonstrate how Amp datasets can power real-world insights, analytics, alerts, agent workflows, risk dashboards, or user experiences across DeFi, NFTs, RWAs, or AI.
-
-Learn about other prize tracks such as building with Subgraphs, Substreams, Token API, and The Graph's MCP servers [here](https://ethglobal.com/events/buenosaires/prizes/the-graph)
 
 ## Prerequisites
 
