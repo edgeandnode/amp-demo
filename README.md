@@ -6,6 +6,8 @@ Build real-time dashboards, analytics tools, and data-driven applications using 
 
 Perfect for hackathons, prototypes, and production applications that need fast access to on-chain data.
 
+**[Video Walkthrough](https://youtu.be/648bupheT1c) of this Repository** 
+
 ## What's in This Repository
 
 This is a fullstack demo showcasing Amp.
