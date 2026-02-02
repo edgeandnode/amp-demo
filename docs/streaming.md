@@ -440,24 +440,8 @@ sql: `
 - You're exploring data and queries change frequently
 - The transformation is simple (single `WHERE` clause)
 
-## Examples from the Template
-
-The template includes `amp.config.extended-example.ts` with working examples:
-
-```bash
-# View the extended example
-cat amp.config.extended-example.ts
-```
-
-This shows:
-- Filtering dependency tables
-- Joining blocks with transactions
-- Using built-in functions
-- Proper SQL structure for streaming
-
 ## Need Help?
 
-- **Syntax errors:** Check [DuckDB SQL docs](https://duckdb.org/docs/sql/introduction) (Amp uses DuckDB SQL)
 - **Streaming errors:** Review the [Unsupported Operations](#unsupported-operations-in-table-definitions) section
 - **Performance issues:** See [Performance Tips](#performance-tips)
 - **Questions:** Open an issue on GitHub
